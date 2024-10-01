@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "303645195818",
+    "project_id": "quite-courier",
+    "storage_bucket": "quite-courier.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303645195818:android:7ce343679c14592af68d53",
+        "android_client_info": {
+          "package_name": "com.example.quite_courier"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAv-yE0eXNfOoQacMjv-FEfoPNqWimT7Fc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303645195818:android:41d39e5f24dc2779f68d53",
+        "android_client_info": {
+          "package_name": "om.example.qu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAv-yE0eXNfOoQacMjv-FEfoPNqWimT7Fc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
