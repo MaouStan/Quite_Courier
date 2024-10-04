@@ -9,73 +9,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:quite_courier/services/geolocator_services.dart';
-
-Future<List<LatLng>> fetchRoute(LatLng start, LatLng end) async {
-  // Construct the URL for the OSRM API
-  final url =
-      'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson';
-  dev.log('URL: $url');
-
-  // Make the HTTP GET request
-  dev.log('Fetching route from $start to $end');
-  final response = await http.get(Uri.parse(url));
-
-  // Check if the response is successful
-  if (response.statusCode == 200) {
-    // Parse the JSON response
-    final data = json.decode(response.body);
-
-    // Extract the coordinates from the response
-    final List<dynamic> coordinates =
-        data['routes'][0]['geometry']['coordinates'];
-    // Convert the coordinates to a list of LatLng objects
-    return coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
-  } else {
-    // Throw an exception if the request failed
-    throw Exception('Failed to load route');
-  }
-}
-
-Future<LatLng> fetchRiderPosition(String riderId) async {
-  // // Simulate a network call to fetch rider's position
-  // // Replace this with your actual database/API call
-  // final response =
-  //     await http.get(Uri.parse('https://yourapi.com/rider/$riderId/position'));
-
-  // if (response.statusCode == 200) {
-  //   final data = json.decode(response.body);
-  //   return LatLng(data['latitude'], data['longitude']);
-  // } else {
-  //   throw Exception('Failed to load rider position');
-  // }
-
-  var random = Random();
-  // in range lat 16.250743 +- 0.05
-  // in range long 103.24796 +- 0.05
-  return LatLng(random.nextDouble() * 0.1 + 16.250743 - 0.05,
-      random.nextDouble() * 0.1 + 103.24796 - 0.05);
-}
-
-Future<Map<String, LatLng>> fetchRiderPositions(List<String> riderIds) async {
-  Map<String, LatLng> positions = {};
-  for (String riderId in riderIds) {
-    // // Simulate a network call to fetch each rider's position
-    // // Replace this with your actual database/API call
-    // final response = await http
-    //     .get(Uri.parse('https://yourapi.com/rider/$riderId/position'));
-
-    // if (response.statusCode == 200) {
-    //   final data = json.decode(response.body);
-    //   positions[riderId] = LatLng(data['latitude'], data['longitude']);
-    // } else {
-    //   throw Exception('Failed to load rider position for $riderId');
-    // }
-    var random = Random();
-    positions[riderId] = LatLng(random.nextDouble() * 0.1 + 16.250743 - 0.05,
-        random.nextDouble() * 0.1 + 103.24796 - 0.05);
-  }
-  return positions;
-}
+import 'package:quite_courier/services/map_service.dart'; // {{ edit_1: Import MapService }}
+import 'package:quite_courier/services/user_service.dart'; // {{ edit_2: Import UserService }}
 
 enum MapMode { select, route, tracks }
 
@@ -148,7 +83,7 @@ class RouteModeHandler extends MapModeHandler {
     dev.log('RouteModeHandler created for riderId: $riderId');
     _initializePositions();
     _startTimer();
-    allowUpdate = true; // {{ edit_1: Initialize allowUpdate to true }}
+    allowUpdate = true; // {{ edit_4: Initialize allowUpdate to true }}
   }
 
   Timer? _timer;
@@ -244,10 +179,10 @@ class RouteModeHandler extends MapModeHandler {
   Future<void> _initializePositions() async {
     Position myPos = await GeolocatorServices.getCurrentLocation();
     myPosition = LatLng(myPos.latitude, myPos.longitude);
-    riderPosition = await fetchRiderPosition(riderId);
+    riderPosition = await UserService.fetchRiderPosition(riderId); // {{ edit_5: Use UserService }}
 
     try {
-      route = await fetchRoute(riderPosition!, myPosition!);
+      route = await MapService.fetchRoute(riderPosition!, myPosition!); // {{ edit_6: Use MapService }}
     } catch (e) {
       dev.log('Error fetching route: $e');
       route = null;
@@ -262,21 +197,20 @@ class RouteModeHandler extends MapModeHandler {
       if (!allowUpdate) return;
 
       if (_isDisposed) {
-        // {{ edit_3: Check allowUpdate before proceeding }}
         timer.cancel();
         return;
       }
       try {
         allowUpdate = false;
         Position myPos = await GeolocatorServices.getCurrentLocation();
-        LatLng riderPos = await fetchRiderPosition(riderId);
+        LatLng riderPos = await UserService.fetchRiderPosition(riderId); // {{ edit_7: Use UserService }}
         myPosition = LatLng(myPos.latitude, myPos.longitude);
         riderPosition = riderPos;
         dev.log('${DateTime.now()} Updated positions');
 
         // Fetch and update the route after position update
         try {
-          route = await fetchRoute(riderPosition!, myPosition!);
+          route = await MapService.fetchRoute(riderPosition!, myPosition!); // {{ edit_8: Use MapService }}
           dev.log('${DateTime.now()} Updated route');
         } catch (e) {
           dev.log('Error fetching route: $e');
@@ -449,16 +383,14 @@ class TracksModeHandler extends MapModeHandler {
       allowUpdate = false;
       try {
         Position myPos = await GeolocatorServices.getCurrentLocation();
-        myPosition = LatLng(myPos.latitude, myPos.longitude);
-        Map<String, LatLng> riderPos = await fetchRiderPositions(riderIds);
+        Map<String, LatLng> riderPos = await UserService.fetchRiderPositions(riderIds); // {{ edit_9: Use UserService }}
         riderPositions = riderPos;
         dev.log('${DateTime.now()} Updated positions');
 
         // Fetch and update routes for each rider
         // for (String riderId in riderIds) {
         //   try {
-        //     List<LatLng> route =
-        //         await fetchRoute(riderPositions[riderId]!, myPosition!);
+        //     List<LatLng> route = await MapService.fetchRoute(riderPositions[riderId]!, myPosition!); // {{ edit_10: Use MapService }}
         //     routes[riderId] = route;
         //     dev.log('${DateTime.now()} Updated route for $riderId');
         //   } catch (e) {
