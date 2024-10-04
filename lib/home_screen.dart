@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
               final selectedPosition = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(mode: MapMode.select),
+                  builder: (context) => MapPage(mode: MapMode.select),
                 ),
               );
               if (selectedPosition != null && selectedPosition is LatLng) {
@@ -49,7 +49,8 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(mode: MapMode.route, riderId: riderId),
+                  builder: (context) =>
+                      MapPage(mode: MapMode.route, riderId: riderId),
                 ),
               );
             },
@@ -61,7 +62,8 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapScreen(mode: MapMode.tracks, riderIds: riderIds),
+                  builder: (context) =>
+                      MapPage(mode: MapMode.tracks, riderIds: riderIds),
                 ),
               );
             },

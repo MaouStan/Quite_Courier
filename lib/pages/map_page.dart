@@ -415,19 +415,19 @@ class TracksModeHandler extends MapModeHandler {
   }
 }
 
-class MapScreen extends StatefulWidget {
+class MapPage extends StatefulWidget {
   final MapMode mode;
   final String? riderId;
   final List<String>? riderIds;
 
-  const MapScreen(
+  const MapPage(
       {super.key, this.mode = MapMode.select, this.riderId, this.riderIds});
 
   @override
-  _MapScreenState createState() => _MapScreenState();
+  _MapPageState createState() => _MapPageState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapPageState extends State<MapPage> {
   late LatLng _selectedPosition = const LatLng(0.0, 0.0);
   LatLng? _initialPosition;
   bool _isLoading = true;
@@ -454,7 +454,7 @@ class _MapScreenState extends State<MapScreen> {
       (modeHandler as TracksModeHandler).stop();
     }
     super.dispose();
-    dev.log('MapScreen disposed');
+    dev.log('MapPage disposed');
   }
 
   void _determinePosition() async {
