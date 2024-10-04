@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:quite_courier/screens/map_screen.dart';
+import 'package:quite_courier/pages/map_page.dart';
 
 class HomeScreen extends StatelessWidget {
   // final LatLng targetPosition = const LatLng(16.250743, 103.24796);
