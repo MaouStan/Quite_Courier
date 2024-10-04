@@ -219,8 +219,21 @@ class RouteModeHandler extends MapModeHandler {
               width: 80.0,
               height: 80.0,
               point: riderPosition!,
-              child: const Icon(Icons.directions_bike,
-                  color: Colors.red, size: 40), // Custom rider icon
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.directions_bike,
+                      color: Colors.red, size: 40),
+                  Text(
+                    riderId, // Display riderId below the icon
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      backgroundColor: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -381,13 +394,29 @@ class TracksModeHandler extends MapModeHandler {
             ...riderIds.map((riderId) {
               int index = riderIds.indexOf(riderId);
               LatLng riderPosition = riderPositions[riderId] ?? LatLng(0, 0);
-              Color riderColor =
-                  _riderColors[riderId] ?? getColorForRider(riderId);
+              Color riderColor = _riderColors[riderId] ?? getColorForRider(riderId);
               return Marker(
                 width: 80.0,
                 height: 80.0,
                 point: riderPosition,
-                child: Icon(Icons.directions_bike, color: riderColor, size: 30),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.directions_bike, color: riderColor, size: 30),
+                    Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: Text(
+                        riderId, // Display riderId below the icon
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          backgroundColor: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               );
             }).toList(),
           ],
