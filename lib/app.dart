@@ -22,7 +22,7 @@ class App extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.lexendTextTheme(),
       ),
-      home: RiderProfilePage(),
+      home: UserProfilePage(),
     );
   }
 }
