@@ -6,6 +6,8 @@ import 'package:quite_courier/home.dart';
 import 'package:quite_courier/pages/loading_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:quite_courier/pages/role_page.dart';
+import 'package:quite_courier/home_screen.dart';
+import 'package:quite_courier/screens/map_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -20,7 +22,11 @@ class App extends StatelessWidget {
         textTheme: GoogleFonts.lexendTextTheme(),
         
       ),
-      home:  LoadingPage(),
+      home: HomeScreen(),
+      routes: {
+        '/home': (context) => HomeScreen(),
+        '/selectPos': (context) => SelectPositionScreen(),
+      },
     );
   }
 }
