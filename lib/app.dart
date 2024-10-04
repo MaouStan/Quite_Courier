@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:quite_courier/home.dart';
+import 'package:quite_courier/pages/loading_page.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:quite_courier/pages/role_page.dart';
 import 'package:quite_courier/home_screen.dart';
 import 'package:quite_courier/screens/map_screen.dart';
 
@@ -7,11 +14,13 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        textTheme: GoogleFonts.lexendTextTheme(),
+        
       ),
       home: HomeScreen(),
       routes: {
