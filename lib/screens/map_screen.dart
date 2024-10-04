@@ -392,7 +392,6 @@ class TracksModeHandler extends MapModeHandler {
                     color: Colors.green, size: 40),
               ),
             ...riderIds.map((riderId) {
-              int index = riderIds.indexOf(riderId);
               LatLng riderPosition = riderPositions[riderId] ?? LatLng(0, 0);
               Color riderColor = _riderColors[riderId] ?? getColorForRider(riderId);
               return Marker(
