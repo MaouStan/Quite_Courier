@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_common/get_reset.dart';
 import 'dart:async';
 
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/pages/role_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
 
 class LoadingPage extends StatefulWidget {
+  const LoadingPage({super.key});
+
   @override
   _LoadingPageState createState() => _LoadingPageState();
 }
@@ -136,7 +136,7 @@ class _LoadingPageState extends State<LoadingPage>
                       const SizedBox(height: 30),
                       ElevatedButton(
                         onPressed: () {
-                          Get.to(() => SigninPage());
+                          Get.to(() => const SigninPage());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF8E97FD),
@@ -165,7 +165,7 @@ class _LoadingPageState extends State<LoadingPage>
                           ),
                         ),
                         onPressed: () {
-                         Get.to(() => RolePage());
+                         Get.to(() => const RolePage());
                         },
                         child: Ink(
                           decoration: BoxDecoration(

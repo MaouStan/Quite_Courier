@@ -32,14 +32,14 @@ void onInit() {
         'id': '1',
         'name': 'Package 1',
         'recipient': 'John Doe',
-        'sentDate': DateTime.now().subtract(Duration(days: 2)),
+        'sentDate': DateTime.now().subtract(const Duration(days: 2)),
         'status': OrderStatus.inProgress,
       },
       {
         'id': '2',
         'name': 'Package 2',
         'recipient': 'Jane Smith',
-        'sentDate': DateTime.now().subtract(Duration(days: 1)),
+        'sentDate': DateTime.now().subtract(const Duration(days: 1)),
         'status': OrderStatus.received,
       },
       {

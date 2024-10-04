@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/pages/signin_page.dart';
 
 class MyDrawer extends StatelessWidget {
@@ -179,7 +178,7 @@ class MyDrawer extends StatelessWidget {
                           fontSize: Get.textTheme.titleLarge!.fontSize)),
                   leading: const Icon(Icons.logout, size: 40),
                   onTap: () {
-                    Get.to(() => SigninPage());
+                    Get.to(() => const SigninPage());
                   },
                 ),
                 const SizedBox(

@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'dart:math';
-import 'dart:developer' as dev;
 import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
 
 class UserService {
   // {{ edit_12: Define fetchRiderPosition method }}
