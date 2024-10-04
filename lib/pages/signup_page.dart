@@ -9,7 +9,7 @@ import 'package:quite_courier/pages/userhome_page.dart';
 class SignUpPage extends StatefulWidget {
   final String role;
 
-  const SignUpPage({Key? key, required this.role}) : super(key: key);
+  const SignUpPage({super.key, required this.role});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -250,7 +250,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.role == 'Rider'
                       ? const Color(0xFF8E97FD)
-                      : Color(0xFF84C8E8),
+                      : const Color(0xFF84C8E8),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(230, 60),
                 shape: RoundedRectangleBorder(
@@ -342,7 +342,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: widget.role == 'Rider'
                       ? const Color(0xFF8E97FD)
-                      : Color(0xFF84C8E8),
+                      : const Color(0xFF84C8E8),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(100, 60),
                   shape: RoundedRectangleBorder(
@@ -363,7 +363,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 style: ElevatedButton.styleFrom(
                  backgroundColor: widget.role == 'Rider'
                       ? const Color(0xFF8E97FD)
-                      : Color(0xFF84C8E8),
+                      : const Color(0xFF84C8E8),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(200, 60),
                   shape: RoundedRectangleBorder(
@@ -463,7 +463,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ElevatedButton(
                 onPressed: () {
                   log('Sing up');
-                  Get.to(() => UserhomePage());
+                  Get.to(() => const UserhomePage());
                 },
                  style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF84C8E8),

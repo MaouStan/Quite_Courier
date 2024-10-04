@@ -5,7 +5,7 @@ import 'package:get/get_core/src/get_main.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String location;
 
-  CustomAppBar({required this.location});
+  const CustomAppBar({super.key, required this.location});
 
   @override
   Widget build(BuildContext context) {

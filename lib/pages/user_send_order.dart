@@ -153,23 +153,23 @@ class _UserSendOrderState extends State<UserSendOrder>
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.blue),
+            icon: const Icon(Icons.arrow_back, color: Colors.blue),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
-          title: Text('Back', style: TextStyle(color: Colors.blue)),
+          title: const Text('Back', style: TextStyle(color: Colors.blue)),
           backgroundColor: Colors.white,
           elevation: 0,
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(48.0),
+            preferredSize: const Size.fromHeight(48.0),
             child: Container(
               color: Colors.white,
               child: TabBar(
                 controller: _tabController,
                 labelColor: Colors.black,
                 unselectedLabelColor: Colors.grey,
-                tabs: [
+                tabs: const [
                   Tab(text: 'Item Details'),
                   Tab(text: 'Receiver'),
                   Tab(text: 'Address'),
@@ -191,7 +191,7 @@ class _UserSendOrderState extends State<UserSendOrder>
         ),
         body: TabBarView(
           controller: _tabController,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             _buildItemDetailsTab(),
             _buildReceiverTab(),
@@ -222,30 +222,30 @@ class _UserSendOrderState extends State<UserSendOrder>
                 ),
                 child: _selectedImage != null
                     ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                    : Icon(Icons.add_a_photo_outlined, size: 100),
+                    : const Icon(Icons.add_a_photo_outlined, size: 100),
               ),
             ),
           ),
-          SizedBox(height: 20),
-          Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          const Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
           TextField(
             controller: itemControllers['name']!,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'ยอดเปล่า',
               border: OutlineInputBorder(),
             ),
           ),
-          SizedBox(height: 20),
-          Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
           TextField(
             controller: itemControllers['description']!,
             maxLines: 4,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: '......',
               border: OutlineInputBorder(),
             ),
           ),
-          Spacer(),
+          const Spacer(),
           Center(
             child: ElevatedButton(
               onPressed: () {
@@ -259,7 +259,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: Text('Next'),
+              child: const Text('Next'),
             ),
           ),
         ],
@@ -275,14 +275,14 @@ class _UserSendOrderState extends State<UserSendOrder>
         children: [
           TextField(
             controller: _searchController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: '09xxxxxxxx',
               labelText: 'Search Receiver',
               prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Expanded(
             child: ListView.builder(
               itemCount: _filteredUsers.length,
@@ -298,7 +298,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                   child: Card(
                     color:
                         _selectedUserIndex == index ? Colors.amber[100] : null,
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundImage: NetworkImage(user.image),
@@ -331,7 +331,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text('Back'),
+                child: const Text('Back'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -345,7 +345,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text('Next'),
+                child: const Text('Next'),
               ),
             ],
           ),
@@ -358,7 +358,7 @@ class _UserSendOrderState extends State<UserSendOrder>
     final LatLng? selectedPosition = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MapPage(mode: MapMode.select),
+        builder: (context) => const MapPage(mode: MapMode.select),
       ),
     );
 
@@ -376,50 +376,50 @@ class _UserSendOrderState extends State<UserSendOrder>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
           TextField(
             controller: receiverControllers['name']!,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'XXXX',
               border: OutlineInputBorder(),
             ),
           ),
-          SizedBox(height: 20),
-          Text('Telephone', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          const Text('Telephone', style: TextStyle(fontWeight: FontWeight.bold)),
           TextField(
             controller: receiverControllers['telephone']!,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'XXXXX',
               border: OutlineInputBorder(),
             ),
           ),
-          SizedBox(height: 20),
-          Text('GPS Map', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          const Text('GPS Map', style: TextStyle(fontWeight: FontWeight.bold)),
           TextField(
             enabled: true,
             controller: receiverControllers['gpsMap']!,
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
             decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              disabledBorder: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
+              disabledBorder: const OutlineInputBorder(),
               suffixIcon: IconButton(
-                icon: Icon(Icons.map),
+                icon: const Icon(Icons.map),
                 onPressed: _selectPosition,
               ),
             ),
           ),
-          SizedBox(height: 20),
-          Text('Address Description',
+          const SizedBox(height: 20),
+          const Text('Address Description',
               style: TextStyle(fontWeight: FontWeight.bold)),
           TextField(
             controller: receiverControllers['addressDescription']!,
             maxLines: 3,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'XXXX, YYYY',
               border: OutlineInputBorder(),
             ),
           ),
-          Spacer(),
+          const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -433,7 +433,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text('Back'),
+                child: const Text('Back'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -445,7 +445,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: Text('Send'),
+                child: const Text('Send'),
               ),
             ],
           ),

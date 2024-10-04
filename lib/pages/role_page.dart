@@ -40,14 +40,14 @@ class _RolePageState extends State<RolePage> {
               GestureDetector(
                 onTap: () {
                   // นำทางไปยังหน้า SignUpPage
-                  Get.to(() => SignUpPage(role: 'Rider'));
+                  Get.to(() => const SignUpPage(role: 'Rider'));
                 },
                 child: _buildUserTypeContainer(
                   title: 'Rider',
                   imagePath:
                       'assets/images/rider.png', // Replace with your image path
-                  color: Color(0xFF6D6AF4).withOpacity(0.69),
-                  fontcolor: Color(0xFF6154F5),
+                  color: const Color(0xFF6D6AF4).withOpacity(0.69),
+                  fontcolor: const Color(0xFF6154F5),
                 ),
               ),
 
@@ -55,14 +55,14 @@ class _RolePageState extends State<RolePage> {
               GestureDetector(
                 onTap: () {
                   // นำทางไปยังหน้า SignUpPage
-                  Get.to(() => SignUpPage(role: 'General User'));
+                  Get.to(() => const SignUpPage(role: 'General User'));
                 },
                 child: _buildUserTypeContainer(
                     title: 'General User',
                     imagePath:
                         'assets/images/general_user.png', // Replace with your image path
-                    color: Color(0xFFCAEDFD),
-                    fontcolor: Color(0xFF04B0FF)),
+                    color: const Color(0xFFCAEDFD),
+                    fontcolor: const Color(0xFF04B0FF)),
               ),
             ],
           ),

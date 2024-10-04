@@ -179,7 +179,7 @@ class MyDrawer extends StatelessWidget {
                           fontSize: Get.textTheme.titleLarge!.fontSize)),
                   leading: const Icon(Icons.logout, size: 40),
                   onTap: () {
-                    Get.to(() => SigninPage());
+                    Get.to(() => const SigninPage());
                   },
                 ),
                 const SizedBox(

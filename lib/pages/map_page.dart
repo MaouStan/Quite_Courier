@@ -267,7 +267,7 @@ class TracksModeHandler extends MapModeHandler {
   ];
 
   // {{ edit_6: Assign colors to each riderId }}
-  Map<String, Color> _riderColors = {};
+  final Map<String, Color> _riderColors = {};
 
   Color getColorForRider(String riderId) {
     if (_riderColors.containsKey(riderId)) {
@@ -291,7 +291,7 @@ class TracksModeHandler extends MapModeHandler {
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
-        initialCenter: myPosition ?? LatLng(0, 0),
+        initialCenter: myPosition ?? const LatLng(0, 0),
         initialZoom: 13.0,
         onMapReady: () {
           _isMapReady = true;
@@ -323,7 +323,7 @@ class TracksModeHandler extends MapModeHandler {
                     color: Colors.green, size: 40),
               ),
             ...riderIds.map((riderId) {
-              LatLng riderPosition = riderPositions[riderId] ?? LatLng(0, 0);
+              LatLng riderPosition = riderPositions[riderId] ?? const LatLng(0, 0);
               Color riderColor = _riderColors[riderId] ?? getColorForRider(riderId);
               return Marker(
                 width: 80.0,
@@ -348,7 +348,7 @@ class TracksModeHandler extends MapModeHandler {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ],

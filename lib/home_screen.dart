@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
               final selectedPosition = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MapPage(mode: MapMode.select),
+                  builder: (context) => const MapPage(mode: MapMode.select),
                 ),
               );
               if (selectedPosition != null && selectedPosition is LatLng) {
