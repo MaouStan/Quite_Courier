@@ -1,13 +1,10 @@
-import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:quite_courier/services/geolocator_services.dart';
 import 'package:quite_courier/services/map_service.dart'; // {{ edit_1: Import MapService }}
 import 'package:quite_courier/services/user_service.dart'; // {{ edit_2: Import UserService }}
@@ -383,6 +380,7 @@ class TracksModeHandler extends MapModeHandler {
       allowUpdate = false;
       try {
         Position myPos = await GeolocatorServices.getCurrentLocation();
+        myPosition = LatLng(myPos.latitude, myPos.longitude);
         Map<String, LatLng> riderPos = await UserService.fetchRiderPositions(riderIds); // {{ edit_9: Use UserService }}
         riderPositions = riderPos;
         dev.log('${DateTime.now()} Updated positions');
