@@ -9,6 +9,7 @@ import 'package:quite_courier/pages/rider_profile_page.dart';
 import 'package:quite_courier/pages/user_profile_page.dart';
 import 'package:quite_courier/pages/role_page.dart';
 import 'package:quite_courier/home_screen.dart';
+import 'package:quite_courier/pages/user_send_order.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -22,7 +23,7 @@ class App extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.lexendTextTheme(),
       ),
-      home: UserProfilePage(),
+      home: UserSendOrder(),
     );
   }
 }
