@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:quite_courier/models/user_data.dart';
-import 'package:quite_courier/pages/loading_page.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:quite_courier/pages/rider_profile_page.dart';
-import 'package:quite_courier/pages/user_profile_page.dart';
-import 'package:quite_courier/pages/role_page.dart';
-import 'package:quite_courier/home_screen.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
 
 class App extends StatelessWidget {

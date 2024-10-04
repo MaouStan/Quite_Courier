@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/pages/role_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
 
