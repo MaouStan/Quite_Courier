@@ -148,6 +148,7 @@ class RouteModeHandler extends MapModeHandler {
     dev.log('RouteModeHandler created for riderId: $riderId');
     _initializePositions();
     _startTimer();
+    allowUpdate = true; // {{ edit_1: Initialize allowUpdate to true }}
   }
 
   Timer? _timer;
@@ -155,6 +156,28 @@ class RouteModeHandler extends MapModeHandler {
   LatLng? riderPosition;
   List<LatLng>? route;
   bool _isDisposed = false;
+  bool allowUpdate = false; // {{ edit_2: Declare allowUpdate }}
+
+  // {{ edit_1: Define a static list of colors }}
+  static final List<Color> _colorOptions = [
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.cyan,
+    Colors.amber,
+    Colors.teal,
+    Colors.indigo,
+    Colors.lime,
+  ];
+
+  // {{ edit_2: Assign a color based on riderId hash }}
+  Color get routeColor {
+    int hash = riderId.hashCode;
+    int index = hash % _colorOptions.length;
+    return _colorOptions[index].withOpacity(0.7); // Adjust opacity as needed
+  }
 
   @override
   Widget buildMap(BuildContext context, LatLng initialPosition,
@@ -179,7 +202,7 @@ class RouteModeHandler extends MapModeHandler {
             Polyline(
               points: route!,
               strokeWidth: 5.0,
-              color: Colors.blue,
+              color: routeColor, // {{ edit_3: Use the assigned color }}
             ),
           ],
         ),
@@ -220,14 +243,18 @@ class RouteModeHandler extends MapModeHandler {
     onUpdate();
   }
 
-  Future<void> _startTimer() async {
+  void _startTimer() {
     dev.log('Starting RouteModeHandler timer');
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (!allowUpdate) return;
+
       if (_isDisposed) {
+        // {{ edit_3: Check allowUpdate before proceeding }}
         timer.cancel();
         return;
       }
       try {
+        allowUpdate = false;
         Position myPos = await GeolocatorServices.getCurrentLocation();
         LatLng riderPos = await fetchRiderPosition(riderId);
         myPosition = LatLng(myPos.latitude, myPos.longitude);
@@ -244,6 +271,8 @@ class RouteModeHandler extends MapModeHandler {
         }
 
         onUpdate();
+        await Future.delayed(const Duration(seconds: 3));
+        allowUpdate = true;
       } catch (e) {
         dev.log('Error updating position: $e');
       }
@@ -254,6 +283,7 @@ class RouteModeHandler extends MapModeHandler {
   void stop() {
     dev.log('Stopping RouteModeHandler timer');
     _isDisposed = true;
+    allowUpdate = false; // {{ edit_4: Disable updates after stopping }}
     _timer?.cancel();
   }
 }
@@ -266,14 +296,46 @@ class TracksModeHandler extends MapModeHandler {
     dev.log('TracksModeHandler created for riderIds: $riderIds');
     _initializePositions();
     _startTimer();
+    allowUpdate = true; // {{ edit_5: Initialize allowUpdate to true }}
   }
 
   Timer? _timer;
   LatLng? myPosition;
   Map<String, LatLng> riderPositions = {};
+  Map<String, List<LatLng>> routes = {};
   bool _isMapReady = false;
   bool _isLoading = true;
   bool _isDisposed = false;
+  bool allowUpdate = false; // {{ edit_6: Declare allowUpdate }}
+
+  // {{ edit_5: Define a static list of colors }}
+  static final List<Color> _colorOptions = [
+    Colors.blue,
+    Colors.red,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.cyan,
+    Colors.amber,
+    Colors.teal,
+    Colors.indigo,
+    Colors.lime,
+  ];
+
+  // {{ edit_6: Assign colors to each riderId }}
+  Map<String, Color> _riderColors = {};
+
+  Color getColorForRider(String riderId) {
+    if (_riderColors.containsKey(riderId)) {
+      return _riderColors[riderId]!;
+    } else {
+      int hash = riderId.hashCode;
+      int index = hash % _colorOptions.length;
+      Color color = _colorOptions[index].withOpacity(0.7);
+      _riderColors[riderId] = color;
+      return color;
+    }
+  }
 
   @override
   Widget buildMap(BuildContext context, LatLng initialPosition,
@@ -296,6 +358,16 @@ class TracksModeHandler extends MapModeHandler {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           // subdomains removed as per previous edits
         ),
+        // {{ edit_7: Render routes for each rider with unique colors }}
+        ...routes.entries.map((entry) => PolylineLayer(
+              polylines: [
+                Polyline(
+                  points: entry.value,
+                  strokeWidth: 3.0,
+                  color: getColorForRider(entry.key),
+                ),
+              ],
+            )),
         MarkerLayer(
           markers: [
             if (myPosition != null)
@@ -310,7 +382,7 @@ class TracksModeHandler extends MapModeHandler {
               int index = riderIds.indexOf(riderId);
               LatLng riderPosition = riderPositions[riderId] ?? LatLng(0, 0);
               Color riderColor =
-                  Colors.primaries[index % Colors.primaries.length];
+                  _riderColors[riderId] ?? getColorForRider(riderId);
               return Marker(
                 width: 80.0,
                 height: 80.0,
@@ -342,15 +414,34 @@ class TracksModeHandler extends MapModeHandler {
 
   void _startTimer() {
     dev.log('Starting TracksModeHandler timer');
-    _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      if (_isDisposed || !_isMapReady) return;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (_isDisposed || !_isMapReady || !allowUpdate) {
+        return;
+      }
+      allowUpdate = false;
       try {
         Position myPos = await GeolocatorServices.getCurrentLocation();
-        Map<String, LatLng> riderPos = await fetchRiderPositions(riderIds);
         myPosition = LatLng(myPos.latitude, myPos.longitude);
+        Map<String, LatLng> riderPos = await fetchRiderPositions(riderIds);
         riderPositions = riderPos;
-        onUpdate();
         dev.log('${DateTime.now()} Updated positions');
+
+        // Fetch and update routes for each rider
+        // for (String riderId in riderIds) {
+        //   try {
+        //     List<LatLng> route =
+        //         await fetchRoute(riderPositions[riderId]!, myPosition!);
+        //     routes[riderId] = route;
+        //     dev.log('${DateTime.now()} Updated route for $riderId');
+        //   } catch (e) {
+        //     dev.log('Error fetching route for $riderId: $e');
+        //     routes.remove(riderId); // Remove route if fetching fails
+        //   }
+        // }
+
+        onUpdate();
+        await Future.delayed(const Duration(seconds: 3));
+        allowUpdate = true;
       } catch (e) {
         dev.log('Error updating position: $e');
       }
@@ -361,6 +452,7 @@ class TracksModeHandler extends MapModeHandler {
   void stop() {
     dev.log('Stopping TracksModeHandler timer');
     _isDisposed = true;
+    allowUpdate = false; // {{ edit_8: Disable updates after stopping }}
     _timer?.cancel();
   }
 }
@@ -385,6 +477,8 @@ class _MapScreenState extends State<MapScreen> {
   MapController mapController = MapController();
   late MapModeHandler modeHandler;
 
+  bool _isDisposed = false; // {{ edit_9: Add disposal flag }}
+
   @override
   void initState() {
     super.initState();
@@ -394,6 +488,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    _isDisposed = true; // {{ edit_10: Set disposal flag }}
     if (modeHandler is RouteModeHandler) {
       (modeHandler as RouteModeHandler).stop();
     }
@@ -425,14 +520,6 @@ class _MapScreenState extends State<MapScreen> {
         });
       }
     }
-  }
-
-  bool _isDisposed = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Additional initialization if needed
   }
 
   MapModeHandler _getModeHandler(MapMode mode) {
