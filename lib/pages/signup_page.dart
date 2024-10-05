@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import 'package:quite_courier/pages/userhome_page.dart';
+import 'package:quite_courier/pages/user_home_page.dart';
 
 class SignUpPage extends StatefulWidget {
   final String role;

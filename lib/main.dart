@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/app.dart';
+import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/controller/rider_profile_controller.dart';
 import 'package:quite_courier/controller/user_profile_controller2.dart';
 import 'firebase_options.dart';
@@ -20,6 +21,8 @@ void main() async {
   Get.put(UserProfileController2());
   // RiderProfileController
   Get.put(RiderProfileController());
+
+  Get.put(OrderController());
 
   runApp(const App());
 }
