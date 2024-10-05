@@ -1,7 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quite_courier/controller/rider_profile_controller.dart';
+import 'package:quite_courier/controller/rider_controller.dart';
 import 'dart:io'; // To handle File
 
 class RiderProfilePage extends StatefulWidget {
@@ -12,8 +11,7 @@ class RiderProfilePage extends StatefulWidget {
 }
 
 class _RiderProfilePageState extends State<RiderProfilePage> {
-  final RiderProfileController riderProfileController =
-      Get.find<RiderProfileController>();
+  final RiderController riderController = Get.find<RiderController>();
   Map<String, TextEditingController>? controllers;
   bool isEditMode = false; // Track edit mode
   File?
@@ -30,11 +28,10 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
   void _initializeControllers() {
     controllers = {
       'telephone': TextEditingController(
-          text: riderProfileController.riderData.value.telephone),
-      'name': TextEditingController(
-          text: riderProfileController.riderData.value.name),
+          text: riderController.riderData.value.telephone),
+      'name': TextEditingController(text: riderController.riderData.value.name),
       'vehicleRegistration': TextEditingController(
-          text: riderProfileController.riderData.value.vehicleRegistration),
+          text: riderController.riderData.value.vehicleRegistration),
       // Add other fields as necessary
     };
   }
@@ -68,8 +65,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                       border: Border.all(color: Colors.white, width: 5),
                     ),
                     child: Obx(() {
-                      final imageUrl =
-                          riderProfileController.riderData.value.image;
+                      final imageUrl = riderController.riderData.value.image;
                       return CircleAvatar(
                         radius: 80,
                         backgroundColor: Colors.grey[300],
@@ -163,7 +159,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                                     fit: BoxFit.contain,
                                   )
                                 : Image.network(
-                                    riderProfileController
+                                    riderController
                                         .riderData.value.vehiclePhoto,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Icon(
@@ -223,7 +219,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                               isEditMode = false;
                               _selectedProfileImage = null;
                               _selectedVehicleImage = null;
-                              riderProfileController.resetImageSelection();
+                              riderController.resetImageSelection();
                               _initializeControllers();
                             });
                           },
@@ -261,10 +257,10 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
 
   void updateProfile() async {
     if (_selectedProfileImage != null) {
-      await riderProfileController.uploadSelectedImage(_selectedProfileImage!);
+      await riderController.uploadSelectedImage(_selectedProfileImage!);
     }
     if (_selectedVehicleImage != null) {
-      await riderProfileController.uploadSelectedImage(_selectedVehicleImage!,
+      await riderController.uploadSelectedImage(_selectedVehicleImage!,
           isProfileImage: false);
     }
     setState(() {
@@ -285,7 +281,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Take Photo'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderProfileController.takePhoto();
+                File? selected = await riderController.takePhoto();
                 if (selected != null) {
                   setState(() {
                     _selectedVehicleImage = selected;
@@ -298,7 +294,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Pick Image'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderProfileController.pickImage();
+                File? selected = await riderController.pickImage();
                 if (selected != null) {
                   setState(() {
                     _selectedVehicleImage = selected;
@@ -323,7 +319,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Take Photo'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderProfileController.takePhoto();
+                File? selected = await riderController.takePhoto();
                 if (selected != null) {
                   setState(() {
                     _selectedProfileImage = selected;
@@ -336,7 +332,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Pick Image'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderProfileController.pickImage();
+                File? selected = await riderController.pickImage();
                 if (selected != null) {
                   setState(() {
                     _selectedProfileImage = selected;

@@ -7,8 +7,7 @@ class MapService {
   // {{ edit_11: Define fetchRoute method }}
   static Future<List<LatLng>> fetchRoute(LatLng start, LatLng end) async {
     // Construct the URL for the OSRM API
-    final url =
-        'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson';
+    final url = 'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?geometries=geojson';
     dev.log('URL: $url');
 
     // Make the HTTP GET request

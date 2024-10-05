@@ -1,11 +1,17 @@
 import 'package:get/get.dart';
+import 'package:quite_courier/models/order_data.dart';
 import 'package:quite_courier/models/rider_data.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart'; // {{ edit_1 }} Add Firestore import
 
-class RiderProfileController extends GetxController {
+enum RiderOrderState {
+  waitGetOrder,
+  sendingOrder
+} // {{ edit_1 }} Add enum for order state
+
+class RiderController extends GetxController {
   final riderData = RiderData(
     image: '',
     telephone: '',
@@ -13,6 +19,9 @@ class RiderProfileController extends GetxController {
     vehiclePhoto: '',
     vehicleRegistration: '',
   ).obs;
+
+  var currentState = RiderOrderState.waitGetOrder.obs;
+  var currentOrder = OrderData().obs;
 
   // ignore: unused_field
   File? _tempProfileImage; // Temporary storage for profile image
@@ -39,7 +48,8 @@ class RiderProfileController extends GetxController {
   }
 
   // {{ edit_4 }} Upload the selected image upon confirmation
-  Future<void> uploadSelectedImage(File imageFile, {bool isProfileImage = true}) async {
+  Future<void> uploadSelectedImage(File imageFile,
+      {bool isProfileImage = true}) async {
     return;
     // ignore: dead_code
     try {
@@ -90,6 +100,8 @@ class RiderProfileController extends GetxController {
   }
 
   Future<void> fetchRiderData() async {
+    return;
+    // ignore: dead_code
     try {
       // Replace with your Firestore collection and document structure
       String telephone = 'user_telephone'; // Replace with actual telephone
@@ -110,6 +122,15 @@ class RiderProfileController extends GetxController {
     } catch (e) {
       print('Error fetching rider data: $e');
     }
+  }
+
+  // {{ edit_7 }} Methods to switch order states
+  void switchToSendingOrder() {
+    currentState.value = RiderOrderState.sendingOrder;
+  }
+
+  void switchToWaitGetOrder() {
+    currentState.value = RiderOrderState.waitGetOrder;
   }
 
   // ... Add other necessary methods, such as updating rider information
