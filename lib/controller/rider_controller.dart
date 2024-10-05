@@ -21,7 +21,7 @@ class RiderController extends GetxController {
     vehicleRegistration: '',
   ).obs;
 
-  var currentState = RiderOrderState.sendingOrder.obs;
+  var currentState = RiderOrderState.waitGetOrder.obs;
   var currentOrder = OrderData(
     senderId: '3',
     receiverId: '4',

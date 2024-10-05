@@ -207,31 +207,58 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 ),
                 Row(
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFf7c948),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                    if (order.state !=
+                        OrderState
+                            .pending) // Check if the order is not in sending state
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFf7c948),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
+                        onPressed: () {
+                          // Handle additional action
+                        },
+                        child: const Text('เพิ่มเติม', style: TextStyle(color: Colors.white)),
                       ),
-                      onPressed: () {
-                        // Handle additional action
-                      },
-                      child: const Text('เพิ่มเติม'),
-                    ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFf76c6c),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                    if (order.state != OrderState.pending)
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFf76c6c),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
+                        onPressed: () {
+                          // Handle cancel action
+                          stateController.currentState.value =
+                              RiderOrderState.waitGetOrder;
+                          setState(() {});
+                        },
+                        child: const Text('ยกเลิก', style: TextStyle(color: Colors.white)),
                       ),
-                      onPressed: () {
-                        // Handle cancel action
-                      },
-                      child: const Text('ยกเลิก'),
-                    ),
+                    const SizedBox(width: 8),
+                    if (order.state !=
+                        OrderState
+                            .onDelivery) // Check if the order is not in sending state
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(
+                              0xFF4CAF50), // Green color for accept button
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        onPressed: () {
+                          // Handle accept order action
+                          stateController.currentState.value =
+                              RiderOrderState.sendingOrder;
+                          setState(() {});
+                        },
+                        child: const Text('รับงาน', style: TextStyle(color: Colors.white)), // Accept Order button
+                      ),
                   ],
                 ),
               ],
@@ -383,7 +410,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
         stateController.currentOrder.value.senderLocation.latitude,
         stateController.currentOrder.value.senderLocation.longitude,
       );
-    } else if (stateController.currentOrder.value.state == OrderState.onDelivery) {
+    } else if (stateController.currentOrder.value.state ==
+        OrderState.onDelivery) {
       // Show receiver's location when the order is on delivery
       orderPosition = LatLng(
         stateController.currentOrder.value.receiverLocation.latitude,
