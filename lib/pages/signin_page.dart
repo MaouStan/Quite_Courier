@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -49,7 +48,10 @@ class _SigninPageState extends State<SigninPage> {
       );
     } else {
       // Proceed with sign in logic
-      Get.to(const SigninPage()); // Replace this with actual sign-in logic
+      Get.to(
+        const SigninPage(),
+        transition: Transition.noTransition
+      );
     }
   }
 

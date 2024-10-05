@@ -119,7 +119,10 @@ class _LoadingPageState extends State<LoadingPage>
                             const SizedBox(height: 30),
                             ElevatedButton(
                               onPressed: () {
-                                Get.to(() => const SigninPage());
+                                Get.to(
+                                  () => const SigninPage(),
+                                  transition: Transition.noTransition
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF8E97FD),
@@ -147,7 +150,10 @@ class _LoadingPageState extends State<LoadingPage>
                                 ),
                               ),
                               onPressed: () {
-                                Get.to(() => const RolePage());
+                                Get.to(
+                                  () => const RolePage(),
+                                  transition: Transition.noTransition,
+                                );
                               },
                               child: Ink(
                                 decoration: BoxDecoration(

@@ -39,7 +39,10 @@ class _RolePageState extends State<RolePage> {
               GestureDetector(
                 onTap: () {
                   // นำทางไปยังหน้า SignUpPage
-                  Get.to(() => const SignUpPage(role: 'Rider'));
+                  Get.to(
+                    () => const SignUpPage(role: 'Rider'),
+                    transition: Transition.noTransition
+                  );
                 },
                 child: _buildUserTypeContainer(
                   title: 'Rider',
@@ -54,7 +57,10 @@ class _RolePageState extends State<RolePage> {
               GestureDetector(
                 onTap: () {
                   // นำทางไปยังหน้า SignUpPage
-                  Get.to(() => const SignUpPage(role: 'General User'));
+                  Get.to(
+                    () => const SignUpPage(role: 'General User'),
+                    transition: Transition.noTransition
+                  );
                 },
                 child: _buildUserTypeContainer(
                     title: 'General User',
