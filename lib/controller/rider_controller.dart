@@ -1,17 +1,40 @@
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/models/order_data.dart';
 import 'package:quite_courier/models/rider_data.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart'; // {{ edit_1 }} Add Firestore import
 
-class RiderProfileController extends GetxController {
+enum RiderOrderState {
+  waitGetOrder,
+  sendingOrder
+} // {{ edit_1 }} Add enum for order state
+
+class RiderController extends GetxController {
   final riderData = RiderData(
     image: '',
     telephone: '',
     name: '',
     vehiclePhoto: '',
     vehicleRegistration: '',
+  ).obs;
+
+  var currentState = RiderOrderState.sendingOrder.obs;
+  var currentOrder = OrderData(
+    senderId: '3',
+    receiverId: '4',
+    nameOrder: 'Order 2',
+    orderPhoto: 'order2.jpg',
+    riderOrderPhoto1: 'rider3.jpg',
+    riderOrderPhoto2: 'rider4.jpg',
+    description: 'Description 2',
+    senderLocation:  LatLng(16.450743, 103.43796),
+    receiverLocation: LatLng(16.350743, 103.33796),
+    senderAddress: 'Address 3',
+    receiverAddress: 'Address 4',
+    state: OrderState.onDelivery,
   ).obs;
 
   // ignore: unused_field
@@ -39,7 +62,8 @@ class RiderProfileController extends GetxController {
   }
 
   // {{ edit_4 }} Upload the selected image upon confirmation
-  Future<void> uploadSelectedImage(File imageFile, {bool isProfileImage = true}) async {
+  Future<void> uploadSelectedImage(File imageFile,
+      {bool isProfileImage = true}) async {
     return;
     // ignore: dead_code
     try {
@@ -90,6 +114,8 @@ class RiderProfileController extends GetxController {
   }
 
   Future<void> fetchRiderData() async {
+    return;
+    // ignore: dead_code
     try {
       // Replace with your Firestore collection and document structure
       String telephone = 'user_telephone'; // Replace with actual telephone
@@ -110,6 +136,15 @@ class RiderProfileController extends GetxController {
     } catch (e) {
       print('Error fetching rider data: $e');
     }
+  }
+
+  // {{ edit_7 }} Methods to switch order states
+  void switchToSendingOrder() {
+    currentState.value = RiderOrderState.sendingOrder;
+  }
+
+  void switchToWaitGetOrder() {
+    currentState.value = RiderOrderState.waitGetOrder;
   }
 
   // ... Add other necessary methods, such as updating rider information

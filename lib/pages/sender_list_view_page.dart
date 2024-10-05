@@ -25,8 +25,8 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(location: '9999, 9999'),
-      drawer: const MyDrawer(),
+      appBar: CustomAppBar(),
+      drawer: MyDrawer(),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(

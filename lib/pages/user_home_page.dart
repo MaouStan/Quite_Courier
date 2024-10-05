@@ -22,8 +22,8 @@ class _UserhomePageState extends State<UserhomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(location: '9999, 9999'),
-      drawer: const MyDrawer(),
+      appBar: CustomAppBar(),
+      drawer: MyDrawer(),
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Padding(

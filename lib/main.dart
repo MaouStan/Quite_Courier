@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/app.dart';
 import 'package:quite_courier/controller/order_controller.dart';
-import 'package:quite_courier/controller/rider_profile_controller.dart';
+import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/controller/user_profile_controller2.dart';
+import 'package:quite_courier/services/order_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -19,9 +20,8 @@ void main() async {
   // Controllers
   // UserProfileController2
   Get.put(UserProfileController2());
-  // RiderProfileController
-  Get.put(RiderProfileController());
-
+  // RiderController
+  Get.put(RiderController());
   Get.put(OrderController());
 
   runApp(const App());
