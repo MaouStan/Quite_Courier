@@ -6,8 +6,7 @@ class OrderListView extends StatelessWidget {
   final bool useIncomingData;
   final int? limit;
 
-  OrderListView({Key? key, this.useIncomingData = false, this.limit})
-      : super(key: key);
+  OrderListView({super.key, this.useIncomingData = false, this.limit});
 
   @override
   Widget build(BuildContext context) {
