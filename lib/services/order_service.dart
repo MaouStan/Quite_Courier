@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/order_data.dart';
 
@@ -32,9 +31,9 @@ class OrderService {
           riderOrderPhoto1: 'rider1.jpg',
           riderOrderPhoto2: 'rider2.jpg',
           description: 'Description 1',
-          gpsPosition: LatLng(10.0, 10.0),
-          senderLocation: LatLng(10.0, 10.0),
-          receiverLocation: LatLng(10.0, 10.0),
+          gpsPosition: const LatLng(10.0, 10.0),
+          senderLocation: const LatLng(10.0, 10.0),
+          receiverLocation: const LatLng(10.0, 10.0),
           senderAddress: 'Address 1',
           receiverAddress: 'Address 2',
           state: OrderState.pending,
@@ -47,9 +46,9 @@ class OrderService {
           riderOrderPhoto1: 'rider3.jpg',
           riderOrderPhoto2: 'rider4.jpg',
           description: 'Description 2',
-          gpsPosition: LatLng(20.0, 20.0),
-          senderLocation: LatLng(20.0, 20.0),
-          receiverLocation: LatLng(20.0, 20.0),
+          gpsPosition: const LatLng(20.0, 20.0),
+          senderLocation: const LatLng(20.0, 20.0),
+          receiverLocation: const LatLng(20.0, 20.0),
           senderAddress: 'Address 3',
           receiverAddress: 'Address 4',
           state: OrderState.pending,

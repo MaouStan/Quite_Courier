@@ -158,9 +158,9 @@ class RouteModeHandler extends MapModeHandler {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   focusOnRider
-                      ? Icon(Icons.person_pin_circle,
+                      ? const Icon(Icons.person_pin_circle,
                           color: Colors.red, size: 40)
-                      : Icon(Icons.directions_bike,
+                      : const Icon(Icons.directions_bike,
                           color: Colors.red, size: 40),
                   Text(
                     riderId,

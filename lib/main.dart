@@ -6,7 +6,6 @@ import 'package:quite_courier/app.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/controller/user_profile_controller2.dart';
-import 'package:quite_courier/services/order_service.dart';
 import 'firebase_options.dart';
 
 void main() async {

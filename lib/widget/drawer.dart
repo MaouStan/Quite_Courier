@@ -5,12 +5,11 @@ import 'package:get/get.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/pages/rider_home_page.dart';
 import 'package:quite_courier/pages/rider_profile_page.dart';
-import 'package:quite_courier/pages/signin_page.dart';
 
 class MyDrawer extends StatelessWidget {
   final UserType userType;
 
-  MyDrawer({super.key, this.userType = UserType.user});
+  const MyDrawer({super.key, this.userType = UserType.user});
 
   @override
   Widget build(BuildContext context) {
@@ -134,13 +133,13 @@ class MyDrawer extends StatelessWidget {
                       onPressed: () {
                         Get.back();
                       },
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                     ),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.popUntil(context, (route) => route.isFirst);
                       },
-                      child: Text('Logout'),
+                      child: const Text('Logout'),
                     ),
                   ],
                 );
@@ -268,13 +267,13 @@ class MyDrawer extends StatelessWidget {
                       onPressed: () {
                         Get.back();
                       },
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                     ),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.popUntil(context, (route) => route.isFirst);
                       },
-                      child: Text('Logout'),
+                      child: const Text('Logout'),
                     ),
                   ],
                 );

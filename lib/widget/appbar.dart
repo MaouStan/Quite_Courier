@@ -6,7 +6,7 @@ import 'package:quite_courier/services/geolocator_services.dart';
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final UserType userType;
 
-  CustomAppBar({super.key, this.userType = UserType.user});
+  const CustomAppBar({super.key, this.userType = UserType.user});
 
   @override
   _CustomAppBarState createState() => _CustomAppBarState();
