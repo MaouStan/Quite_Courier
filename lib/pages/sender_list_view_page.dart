@@ -7,7 +7,7 @@ import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
 
 class SenderListViewPage extends StatefulWidget {
-  SenderListViewPage({Key? key}) : super(key: key);
+  const SenderListViewPage({super.key});
 
   @override
   State<SenderListViewPage> createState() => _SenderListViewPageState();
@@ -57,7 +57,7 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
                     Text('สิ่งที่คุณส่ง :'),
                   ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 OrderListView(),
               ],
             ),
@@ -71,9 +71,9 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
           onPressed: () {
             log("กดปุ่ม +");
           },
-          child: const Icon(Icons.add, size: 50),
           backgroundColor: const Color(0xFFE2E0E0),
           shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: 50),
         ),
       ),
     );
