@@ -144,7 +144,10 @@ class _RiderHomePageState extends State<RiderHomePage> {
           child: ListView.builder(
             itemCount: orders.length,
             itemBuilder: (context, index) {
-              return _buildOrderCard(orders[index]);
+              if (orders[index].state == OrderState.pending) {
+                return _buildOrderCard(orders[index]);
+              }
+              return Container();
             },
           ),
         ),
@@ -220,7 +223,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
                         onPressed: () {
                           // Handle additional action
                         },
-                        child: const Text('เพิ่มเติม', style: TextStyle(color: Colors.white)),
+                        child: const Text('เพิ่มเติม',
+                            style: TextStyle(color: Colors.white)),
                       ),
                     const SizedBox(width: 8),
                     if (order.state != OrderState.pending)
@@ -235,14 +239,17 @@ class _RiderHomePageState extends State<RiderHomePage> {
                           // Handle cancel action
                           stateController.currentState.value =
                               RiderOrderState.waitGetOrder;
+                          stateController.currentOrder.value = OrderData();
+                          order.state = OrderState.pending;
                           setState(() {});
                         },
-                        child: const Text('ยกเลิก', style: TextStyle(color: Colors.white)),
+                        child: const Text('ยกเลิก',
+                            style: TextStyle(color: Colors.white)),
                       ),
                     const SizedBox(width: 8),
-                    if (order.state !=
+                    if (order.state ==
                         OrderState
-                            .onDelivery) // Check if the order is not in sending state
+                            .pending) // Check if the order is not in sending state
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(
@@ -255,9 +262,13 @@ class _RiderHomePageState extends State<RiderHomePage> {
                           // Handle accept order action
                           stateController.currentState.value =
                               RiderOrderState.sendingOrder;
+                          order.state = OrderState.accepted;
+                          stateController.currentOrder.value = order;
                           setState(() {});
                         },
-                        child: const Text('รับงาน', style: TextStyle(color: Colors.white)), // Accept Order button
+                        child: const Text('รับงาน',
+                            style: TextStyle(
+                                color: Colors.white)), // Accept Order button
                       ),
                   ],
                 ),

@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/order_data.dart';
 import 'package:quite_courier/models/rider_data.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,20 +21,7 @@ class RiderController extends GetxController {
   ).obs;
 
   var currentState = RiderOrderState.waitGetOrder.obs;
-  var currentOrder = OrderData(
-    senderId: '3',
-    receiverId: '4',
-    nameOrder: 'Order 2',
-    orderPhoto: 'order2.jpg',
-    riderOrderPhoto1: 'rider3.jpg',
-    riderOrderPhoto2: 'rider4.jpg',
-    description: 'Description 2',
-    senderLocation:  const LatLng(16.450743, 103.43796),
-    receiverLocation: const LatLng(16.350743, 103.33796),
-    senderAddress: 'Address 3',
-    receiverAddress: 'Address 4',
-    state: OrderState.onDelivery,
-  ).obs;
+  var currentOrder = OrderData().obs;
 
   // ignore: unused_field
   File? _tempProfileImage; // Temporary storage for profile image

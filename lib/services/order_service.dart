@@ -20,7 +20,7 @@ class OrderService {
       //     gpsPosition: LatLng(doc['latitude'], doc['longitude']),
       //   );
       // }).toList();
-      
+
       // fake example
       return [
         OrderData(
@@ -31,9 +31,8 @@ class OrderService {
           riderOrderPhoto1: 'rider1.jpg',
           riderOrderPhoto2: 'rider2.jpg',
           description: 'Description 1',
-          gpsPosition: const LatLng(10.0, 10.0),
-          senderLocation: const LatLng(10.0, 10.0),
-          receiverLocation: const LatLng(10.0, 10.0),
+          senderLocation: const LatLng(16.450743, 103.43796),
+          receiverLocation: const LatLng(16.350743, 103.33796),
           senderAddress: 'Address 1',
           receiverAddress: 'Address 2',
           state: OrderState.pending,
@@ -46,9 +45,8 @@ class OrderService {
           riderOrderPhoto1: 'rider3.jpg',
           riderOrderPhoto2: 'rider4.jpg',
           description: 'Description 2',
-          gpsPosition: const LatLng(20.0, 20.0),
-          senderLocation: const LatLng(20.0, 20.0),
-          receiverLocation: const LatLng(20.0, 20.0),
+          senderLocation: const LatLng(16.150743, 103.13796),
+          receiverLocation: const LatLng(16.550743, 103.53796),
           senderAddress: 'Address 3',
           receiverAddress: 'Address 4',
           state: OrderState.pending,

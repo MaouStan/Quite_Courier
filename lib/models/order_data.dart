@@ -9,20 +9,19 @@ enum OrderState {
 }
 
 class OrderData {
-  final String riderId;
-  final String senderId;
-  final String receiverId;
-  final String nameOrder;
-  final String orderPhoto;
-  final String riderOrderPhoto1;
-  final String riderOrderPhoto2;
-  final String description;
-  final LatLng gpsPosition;
-  final LatLng senderLocation;
-  final LatLng receiverLocation;
-  final String senderAddress;
-  final String receiverAddress;
-  final OrderState state;
+  String riderId;
+  String senderId;
+  String receiverId;
+  String nameOrder;
+  String orderPhoto;
+  String riderOrderPhoto1;
+  String riderOrderPhoto2;
+  String description;
+  LatLng senderLocation;
+  LatLng receiverLocation;
+  String senderAddress;
+  String receiverAddress;
+  OrderState state;
 
   OrderData({
     this.riderId = '',
@@ -33,7 +32,6 @@ class OrderData {
     this.riderOrderPhoto1 = '',
     this.riderOrderPhoto2 = '',
     this.description = '',
-    this.gpsPosition = const LatLng(0, 0),
     this.senderLocation = const LatLng(0, 0),
     this.receiverLocation = const LatLng(0, 0),
     this.senderAddress = '',
@@ -43,6 +41,6 @@ class OrderData {
 
   @override
   String toString() {
-    return 'OrderData(senderId: $senderId, receiverId: $receiverId, nameOrder: $nameOrder, orderPhoto: $orderPhoto, riderOrderPhoto1: $riderOrderPhoto1, riderOrderPhoto2: $riderOrderPhoto2, description: $description, gpsPosition: $gpsPosition, senderLocation: $senderLocation, receiverLocation: $receiverLocation, senderAddress: $senderAddress, receiverAddress: $receiverAddress, state: $state)';
+    return 'OrderData(senderId: $senderId, receiverId: $receiverId, nameOrder: $nameOrder, orderPhoto: $orderPhoto, riderOrderPhoto1: $riderOrderPhoto1, riderOrderPhoto2: $riderOrderPhoto2, description: $description, senderLocation: $senderLocation, receiverLocation: $receiverLocation, senderAddress: $senderAddress, receiverAddress: $receiverAddress, state: $state)';
   }
 }
