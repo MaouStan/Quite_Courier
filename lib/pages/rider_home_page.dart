@@ -168,8 +168,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
           const SizedBox(height: 8),
           _buildDeliveryStatus(),
           const SizedBox(height: 16),
-          const Text('สถานที่รับของ',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            stateController.currentOrder.value.state == OrderState.accepted
+                ? 'สถานที่รับของ' // Show this text if the order is accepted
+                : 'สถานที่ส่งของ', // Show this text if the order is on delivery
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
           _buildMapSection(),
         ],
@@ -237,22 +241,27 @@ class _RiderHomePageState extends State<RiderHomePage> {
               children: [
                 const Icon(Icons.photo_library, size: 50, color: Colors.white),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ผู้รับ: ${order.receiverId}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    Text(
-                      'ต้นทาง: ${order.senderLocation.latitude},${order.senderLocation.longitude} ${order.senderAddress}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    Text(
-                      'ปลายทาง: ${order.receiverLocation.latitude},${order.receiverLocation.longitude} ${order.receiverAddress}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ],
+                SizedBox(
+                  width: 200,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ผู้รับ: ${order.receiverId}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      Text(
+                        'ต้นทาง: ${order.senderAddress}',
+                        maxLines: 1,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      Text(
+                        'ปลายทาง: ${order.receiverAddress}',
+                        maxLines: 1,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -367,6 +376,27 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Widget _buildMapSection() {
+    LatLng orderPosition;
+    if (stateController.currentOrder.value.state == OrderState.accepted) {
+      // Show sender's location when the order is accepted
+      orderPosition = LatLng(
+        stateController.currentOrder.value.senderLocation.latitude,
+        stateController.currentOrder.value.senderLocation.longitude,
+      );
+    } else if (stateController.currentOrder.value.state == OrderState.onDelivery) {
+      // Show receiver's location when the order is on delivery
+      orderPosition = LatLng(
+        stateController.currentOrder.value.receiverLocation.latitude,
+        stateController.currentOrder.value.receiverLocation.longitude,
+      );
+    } else {
+      // Default to receiver's location if no specific state is matched
+      orderPosition = LatLng(
+        stateController.currentOrder.value.receiverLocation.latitude,
+        stateController.currentOrder.value.receiverLocation.longitude,
+      );
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -375,20 +405,19 @@ class _RiderHomePageState extends State<RiderHomePage> {
             builder: (context) => MapPage(
               mode: MapMode.route,
               riderId: stateController.currentOrder.value.riderId,
-              orderPosition: LatLng(
-                stateController.currentOrder.value.receiverLocation.latitude,
-                stateController.currentOrder.value.receiverLocation.longitude,
-              ),
+              orderPosition: orderPosition,
               focusOnRider: true,
             ),
           ),
         );
       },
-      child: Container(
+      child: SizedBox(
         height: 200,
-        color: Colors.grey[300],
-        child: const Center(
-          child: Text('Map Placeholder'),
+        child: MapPage(
+          mode: MapMode.route,
+          riderId: stateController.currentOrder.value.riderId,
+          orderPosition: orderPosition,
+          focusOnRider: true,
         ),
       ),
     );
