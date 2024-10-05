@@ -27,18 +27,20 @@ class OrderListView extends StatelessWidget {
     );
   }
 
-  List<Map<String, dynamic>> _getOrders(OrderController controller) {
-    List<Map<String, dynamic>> selectedOrders =
-        useIncomingData ? controller.incomingPackages : controller.sampleOrders;
-
-    selectedOrders.sort((a, b) =>
-        (b['sentDate'] as DateTime).compareTo(a['sentDate'] as DateTime));
-
-    if (limit != null && limit! > 0 && limit! < selectedOrders.length) {
-      return selectedOrders.take(limit!).toList();
-    }
-    return selectedOrders;
+ List<Map<String, dynamic>> _getOrders(OrderController controller) {
+  List<Map<String, dynamic>> selectedOrders = List.from(
+    useIncomingData ? controller.incomingPackages : controller.sampleOrders
+  );
+  
+  selectedOrders.sort((a, b) =>
+      (b['sentDate'] as DateTime).compareTo(a['sentDate'] as DateTime));
+  
+  if (limit != null && limit! > 0 && limit! < selectedOrders.length) {
+    return selectedOrders.take(limit!).toList();
   }
+  
+  return selectedOrders;
+}
 
   Widget _buildOrderItem(
       Map<String, dynamic> order, OrderController controller) {
