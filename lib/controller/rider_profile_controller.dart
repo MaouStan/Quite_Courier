@@ -14,7 +14,9 @@ class RiderProfileController extends GetxController {
     vehicleRegistration: '',
   ).obs;
 
+  // ignore: unused_field
   File? _tempProfileImage; // Temporary storage for profile image
+  // ignore: unused_field
   File? _tempVehicleImage; // Temporary storage for vehicle image
 
   // {{ edit_3 }} Choose image without uploading
@@ -39,6 +41,7 @@ class RiderProfileController extends GetxController {
   // {{ edit_4 }} Upload the selected image upon confirmation
   Future<void> uploadSelectedImage(File imageFile, {bool isProfileImage = true}) async {
     return;
+    // ignore: dead_code
     try {
       final telephone = riderData.value.telephone;
       final fileExtension = imageFile.path.split('.').last;

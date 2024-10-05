@@ -14,6 +14,7 @@ class UserProfileController2 extends GetxController {
     addressDescription: '123',
   ).obs;
 
+  // ignore: unused_field
   File? _temporaryImage; // {{ edit_8 }} Temporary storage for selected image
 
   // Method to take a photo using the camera
