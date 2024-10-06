@@ -24,12 +24,11 @@ class _SenderOrderDetailState extends State<SenderOrderDetail> {
   Widget build(BuildContext context) {
     final order = orderController.sampleOrders
         .firstWhere((o) => o['id'] == widget.orderId);
-    String gpsMap = order['gpsMap']; // e.g., "9999,9999"
     int currentStep = order['status'].index; // กำหนดค่าเริ่มต้นตามที่คุณต้องการ
 
     return Scaffold(
       appBar: CustomAppBar(
-        location: gpsMap,
+        
       ),
       drawer: const MyDrawer(),
       body: SingleChildScrollView(

@@ -26,7 +26,7 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(location: '9999, 9999'),
+      appBar: const CustomAppBar(),
       drawer: const MyDrawer(),
       body: SingleChildScrollView(
         child: Center(
