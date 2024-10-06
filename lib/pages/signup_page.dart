@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:quite_courier/pages/rider_home_page.dart';
 import 'dart:io';
 
 import 'package:quite_courier/pages/user_home_page.dart';
@@ -581,6 +582,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ElevatedButton(
                 onPressed: () {
                   log('Sing up');
+                  Get.to(() => RiderHomePage());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8E97FD),

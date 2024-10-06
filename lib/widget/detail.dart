@@ -90,6 +90,12 @@ class OrderDetailContent extends StatelessWidget {
               const Divider(
                   color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
               _buildAddressDescription(),
+                            const Divider(
+                  color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
+              _buildSenderDetails(),
+              const Divider(
+                  color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
+
               _buildMapButton(),
             ],
           ),
@@ -204,6 +210,35 @@ class OrderDetailContent extends StatelessWidget {
       ),
     );
   }
+
+    Widget _buildSenderDetails() {
+    return Container(
+      decoration: const BoxDecoration(color: Colors.white),
+      padding: const EdgeInsets.all(12.0),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 30,
+            backgroundImage: NetworkImage('https://your-image-url.com'),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Name : ${order['sender'] ?? 'ไม่พบข้อมูล'}',
+                style: _detailsTextStyle(),
+              ),
+              const SizedBox(height: 4),
+              Text('เบอร์โทร : ${order['telephone']}',
+                  style: _detailsTextStyle()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildAddressDescription() {
     return Padding(
