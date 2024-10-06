@@ -46,10 +46,10 @@ class _LoadingPageState extends State<LoadingPage>
 
     // Initialize title animation
     _titleController = AnimationController(
-      duration: const Duration(seconds: 1),
+      duration: const Duration(seconds: 3),
       vsync: this,
     );
-    _titleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+    _titleAnimation = Tween<double>(begin: 0, end: 1.0).animate(
       CurvedAnimation(parent: _titleController, curve: Curves.easeInOut),
     );
 
@@ -67,143 +67,151 @@ class _LoadingPageState extends State<LoadingPage>
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: LayoutBuilder(builder: (context, constraints) {
-          return Stack(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: LayoutBuilder(builder: (context, constraints) {
+        return Center(
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              // Animated title above the logo
-              Positioned(
-                top: constraints.maxHeight * 0.2,
-                left: 0,
-                right: 0,
-                child: FadeTransition(
-                  opacity: _titleAnimation,
-                  child: Text(
-                    'QuiteCourier',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: Get.textTheme.displayMedium!.fontSize,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xff202442)),
+              SizedBox(
+                width: constraints.maxWidth,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 100, 8, 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // First group: Title
+                      FadeTransition(
+                        opacity: _titleAnimation,
+                        child: Text(
+                          'QuiteCourier',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: Get.textTheme.displayMedium!.fontSize,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xff202442)),
+                        ),
+                      ),
+                      // Second group: Buttons and details
+                      if (_showContent)
+                        Column(
+                          children: [
+                            const SizedBox(height: 10),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 30),
+                              child: Text.rich(
+                                TextSpan(
+                                  text:
+                                      'Your Reliable Partner for Fast and Secure Deliveries',
+                                  style: Get.textTheme.titleLarge
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.visible,
+                                softWrap: true,
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            ElevatedButton(
+                              onPressed: () {
+                                Get.to(
+                                  () => const SigninPage(),
+                                  transition: Transition.noTransition
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF8E97FD),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(230, 60),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                'Sign In',
+                                style: TextStyle(
+                                    fontSize:
+                                        Get.textTheme.titleLarge!.fontSize,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              onPressed: () {
+                                Get.to(
+                                  () => const RolePage(),
+                                  transition: Transition.noTransition,
+                                );
+                              },
+                              child: Ink(
+                                decoration: BoxDecoration(
+                                  gradient: const RadialGradient(
+                                    colors: [
+                                      Color.fromARGB(255, 252, 230, 171),
+                                      Color(0xFFE4BF5F)
+                                    ],
+                                    radius: 2.0,
+                                    center: Alignment.center,
+                                  ),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: SizedBox(
+                                  width: 230,
+                                  height: 60,
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      'Sign Up',
+                                      style: TextStyle(
+                                          fontSize: Get
+                                              .textTheme.titleLarge!.fontSize,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF422020)),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 50),
+                          ],
+                        ),
+                    ],
                   ),
                 ),
               ),
-              // Logo animation
+              // Positioned image in the center
               AnimatedBuilder(
                 animation: Listenable.merge(
                     [_horizontalAnimation, _verticalAnimation]),
                 builder: (context, child) {
                   double horizontalOffset =
                       constraints.maxWidth * (_horizontalAnimation.value - 0.5);
-                  double verticalOffset = constraints.maxHeight * 0.5 -
-                      (_verticalAnimation.value * constraints.maxHeight * 0.2);
+                  double verticalOffset = constraints.maxHeight * 0.25;
                   return Positioned(
                     left: horizontalOffset,
                     top: verticalOffset,
                     child: Image.asset(
                       'assets/images/logo.png',
-                      width: constraints.maxWidth,
+                      width: constraints.maxWidth, // Adjust width
+                      fit: BoxFit.fitWidth,
                     ),
                   );
                 },
               ),
-              // Content that appears after animation
-              if (_showContent)
-                Positioned(
-                  bottom: constraints.maxHeight * 0.175,
-                  left: 0,
-                  right: 0,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 30),
-                        child: Text.rich(
-                          TextSpan(
-                            text:
-                                'Your Reliable Partner for Fast and Secure Deliveries',
-                            style: Get.textTheme.titleLarge
-                                ?.copyWith(color: Colors.grey),
-                          ),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.visible,
-                          softWrap: true,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: () {
-                          Get.to(() => const SigninPage());
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8E97FD),
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(230, 60),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'Sign In',
-                          style: TextStyle(
-                              fontSize: Get.textTheme.titleLarge!.fontSize,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets
-                              .zero, // Remove default padding to fit gradient exactly
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                                30), // Optional: rounded corners
-                          ),
-                        ),
-                        onPressed: () {
-                         Get.to(() => const RolePage());
-                        },
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: const RadialGradient(
-                              colors: [
-                                Color.fromARGB(255, 252, 230, 171),
-                                Color(0xFFE4BF5F)
-                              ], // Gradient colors
-                              radius: 2.0, // Control the spread of the gradient
-                              center: Alignment
-                                  .center, // Specify the center of the gradient
-                            ),
-                            borderRadius: BorderRadius.circular(
-                                30), // Match the button shape
-                          ),
-                          child: SizedBox(
-                            width: 230, // Set the width
-                            height: 60, // Set the height
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                    fontSize:
-                                        Get.textTheme.titleLarge!.fontSize,
-                                    fontWeight: FontWeight.bold, color: const Color(0xFF422020)), // Text style
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
             ],
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 

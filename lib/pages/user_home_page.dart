@@ -24,8 +24,8 @@ class _UserhomePageState extends State<UserhomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(location: '9999, 9999'),
-      drawer: const MyDrawer(),
+      appBar: CustomAppBar(),
+      drawer: MyDrawer(),
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Padding(
@@ -89,7 +89,7 @@ class _UserhomePageState extends State<UserhomePage> {
                           color: Colors.black)),
                   TextButton(
                       onPressed: () {
-                        Get.to(() => SenderListViewPage());
+                        Get.to(() => const SenderListViewPage());
                       },
                       child: Text('มากกว่านี้ >>',
                           style: TextStyle(
@@ -110,7 +110,7 @@ class _UserhomePageState extends State<UserhomePage> {
                           color: Colors.black)),
                   TextButton(
                       onPressed: () {
-                        Get.to(() => RecieverListViewPage());
+                        Get.to(() => const RecieverListViewPage());
                       },
                       child: Text('มากกว่านี้ >>',
                           style: TextStyle(
@@ -133,9 +133,9 @@ class _UserhomePageState extends State<UserhomePage> {
             log("กดปุ่ม +");
             Get.to(() => UserSendOrder());
           },
-          child: const Icon(Icons.add, size: 50),
           backgroundColor: const Color(0xFFE2E0E0),
           shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: 50),
         ),
       ),
     );

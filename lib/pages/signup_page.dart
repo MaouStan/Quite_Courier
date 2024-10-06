@@ -249,8 +249,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.role == 'Rider'
-                      ? const Color(0xFF8E97FD)
-                      : const Color(0xFF84C8E8),
+                    ? const Color(0xFF8E97FD)
+                    : const Color(0xFF84C8E8),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(230, 60),
                 shape: RoundedRectangleBorder(
@@ -361,7 +361,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   _tabController.animateTo(2);
                 },
                 style: ElevatedButton.styleFrom(
-                 backgroundColor: widget.role == 'Rider'
+                  backgroundColor: widget.role == 'Rider'
                       ? const Color(0xFF8E97FD)
                       : const Color(0xFF84C8E8),
                   foregroundColor: Colors.white,
@@ -449,7 +449,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 onPressed: () {
                   _tabController.animateTo(1);
                 },
-                 style: ElevatedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF84C8E8),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(100, 60),
@@ -458,14 +458,19 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   ),
                   elevation: 0,
                 ),
-                child: Text('Back', style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),),
+                child: Text(
+                  'Back',
+                  style:
+                      TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
                   log('Sing up');
-                  Get.to(() => const UserhomePage());
+                  Get.to(() => const UserhomePage(),
+                      transition: Transition.noTransition);
                 },
-                 style: ElevatedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF84C8E8),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(200, 60),
@@ -474,7 +479,11 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   ),
                   elevation: 0,
                 ),
-                child: Text('Sign Up', style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),),
+                child: Text(
+                  'Sign Up',
+                  style:
+                      TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),
+                ),
               ),
             ],
           ),
@@ -550,11 +559,11 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-             ElevatedButton(
+              ElevatedButton(
                 onPressed: () {
                   _tabController.animateTo(1);
                 },
-                 style: ElevatedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8E97FD),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(100, 60),
@@ -563,13 +572,17 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   ),
                   elevation: 0,
                 ),
-                child: Text('Back', style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),),
+                child: Text(
+                  'Back',
+                  style:
+                      TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
                   log('Sing up');
                 },
-                 style: ElevatedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8E97FD),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(200, 60),
@@ -578,7 +591,11 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   ),
                   elevation: 0,
                 ),
-                child: Text('Sign Up', style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),),
+                child: Text(
+                  'Sign Up',
+                  style:
+                      TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize),
+                ),
               ),
             ],
           ),
