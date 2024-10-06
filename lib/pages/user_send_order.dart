@@ -1,6 +1,9 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/user_data.dart';
@@ -17,6 +20,13 @@ class _UserSendOrderState extends State<UserSendOrder>
     with SingleTickerProviderStateMixin {
   File? _selectedImage;
   late TabController _tabController;
+  final _selectedColor = Colors.purple;
+  final _unselectedColor = const Color(0xff5f6368);
+  final _tabs = const [
+    Tab(text: 'Item Details'),
+    Tab(text: 'Receiver'),
+    Tab(text: 'Address'),
+  ];
   final TextEditingController _searchController = TextEditingController();
   final List<UserData> _users = [
     UserData(
@@ -153,49 +163,69 @@ class _UserSendOrderState extends State<UserSendOrder>
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.blue),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            icon: const Icon(
+              Icons.keyboard_double_arrow_left,
+              color: Color(0xFF6F86D6),
+              size: 40.0,
+            ),
+            onPressed: () => Navigator.pop(context),
           ),
-          title: const Text('Back', style: TextStyle(color: Colors.blue)),
-          backgroundColor: Colors.white,
-          elevation: 0,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48.0),
-            child: Container(
-              color: Colors.white,
-              child: TabBar(
-                controller: _tabController,
-                labelColor: Colors.black,
-                unselectedLabelColor: Colors.grey,
-                tabs: const [
-                  Tab(text: 'Item Details'),
-                  Tab(text: 'Receiver'),
-                  Tab(text: 'Address'),
-                ],
-                onTap: (index) {
-                  // Prevent tab clicks
-                  dev.log('index: $index');
-                  dev.log('isItemDetailsComplete: ${_isItemDetailsComplete()}');
-                  dev.log('isReceiverSelected: ${_isReceiverSelected()}');
-                  if (index == 1 && !_isItemDetailsComplete()) {
-                    _tabController.animateTo(0);
-                  } else if (index == 2 && !_isReceiverSelected()) {
-                    _tabController.animateTo(1);
-                  }
-                },
-              ),
+          title: const Text(
+            'Back',
+            style: TextStyle(
+              color: Color(0xFF6F86D6),
+              fontWeight: FontWeight.bold,
             ),
           ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          // bottom: PreferredSize(
+          //   preferredSize: const Size.fromHeight(48.0),
+          //   child: Container(
+          //     color: Colors.white,
+          //     child: TabBar(
+          //       controller: _tabController,
+          //       labelColor: Colors.black,
+          //       unselectedLabelColor: Colors.grey,
+          //       onTap: (index) {
+          //         // Prevent tab clicks
+          //         dev.log('index: $index');
+          //         dev.log('isItemDetailsComplete: ${_isItemDetailsComplete()}');
+          //         dev.log('isReceiverSelected: ${_isReceiverSelected()}');
+          //         if (index == 1 && !_isItemDetailsComplete()) {
+          //           _tabController.animateTo(0);
+          //         } else if (index == 2 && !_isReceiverSelected()) {
+          //           _tabController.animateTo(1);
+          //         }
+          //       },
+          //     ),
+          //   ),
+          // ),
         ),
-        body: TabBarView(
-          controller: _tabController,
-          physics: const NeverScrollableScrollPhysics(),
+        body: Column(
           children: [
-            _buildItemDetailsTab(),
-            _buildReceiverTab(),
-            _buildAddressTab(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TabBar(
+                controller: _tabController,
+                tabs: _tabs,
+                labelColor: _selectedColor,
+                indicatorColor: _selectedColor,
+                unselectedLabelColor: _unselectedColor,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildItemDetailsTab(),
+                  _buildReceiverTab(),
+                  _buildAddressTab(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -204,62 +234,96 @@ class _UserSendOrderState extends State<UserSendOrder>
 
   Widget _buildItemDetailsTab() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(30.0),
+      child: ListView(
         children: [
-          Center(
-            child: GestureDetector(
-              onTap: () {
-                _showImagePickerMenu(context);
-              },
-              child: Container(
-                height: 200,
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _selectedImage != null
-                    ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                    : const Icon(Icons.add_a_photo_outlined, size: 100),
+          GestureDetector(
+            onTap: () {
+              _showImagePickerMenu(context);
+            },
+            child: Container(
+              width: double.infinity,
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: const Color(0xFFA77C0E), width: 2),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: _selectedImage != null
+                  ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                  : const Icon(Icons.add_a_photo_outlined, size: 100),
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            "Name",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: Get.textTheme.titleMedium!.fontSize,
+            ),
+          ),
           TextField(
             controller: itemControllers['name']!,
-            decoration: const InputDecoration(
-              hintText: 'ยอดเปล่า',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: 'กล่องใส่ข้าว',
+              hintStyle: TextStyle(color: Colors.grey.shade400),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
-          TextField(
-            controller: itemControllers['description']!,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: '......',
-              border: OutlineInputBorder(),
+          Text(
+            "Description",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: Get.textTheme.titleMedium!.fontSize,
             ),
           ),
-          const Spacer(),
+          TextField(
+            controller: itemControllers['description']!,
+            maxLines: 5,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.all(20.0),
+            ),
+          ),
+          const SizedBox(height: 200),
           Center(
-            child: ElevatedButton(
-              onPressed: () {
-                if (_isItemDetailsComplete()) {
-                  _tabController.animateTo(1);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: ElevatedButton(
+                onPressed: () => _tabController.animateTo(1),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  minimumSize: const Size(230, 60),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Next',
+                  style: TextStyle(
+                    fontSize: Get.textTheme.titleLarge!.fontSize,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              child: const Text('Next'),
             ),
           ),
         ],
@@ -269,17 +333,33 @@ class _UserSendOrderState extends State<UserSendOrder>
 
   Widget _buildReceiverTab() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            'Search Receiver',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: Get.textTheme.titleMedium!.fontSize,
+            ),
+          ),
           TextField(
             controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: '09xxxxxxxx',
-              labelText: 'Search Receiver',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: '09x-xxx-xxxx',
+              hintStyle: TextStyle(color: Colors.grey.shade400),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.search_outlined),
+                onPressed: () {
+                  log('search');
+                },
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -301,15 +381,25 @@ class _UserSendOrderState extends State<UserSendOrder>
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
                       leading: CircleAvatar(
+                        radius: 50,
                         backgroundImage: NetworkImage(user.image),
                       ),
-                      title: Text('ชื่อ: ${user.name}'),
+                      title: Text('ชื่อ : ${user.name}',
+                          style: TextStyle(
+                              fontSize: Get.textTheme.bodyLarge!.fontSize,
+                              fontWeight: FontWeight.bold)),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                              'เบอร์โทร: ${user.telephone.substring(0, 3)}-${user.telephone.substring(3, 6)}-${user.telephone.substring(6)}'),
-                          Text('ที่อยู่: ${user.addressDescription}'),
+                              'เบอร์โทร : ${user.telephone.substring(0, 3)}-${user.telephone.substring(3, 6)}-${user.telephone.substring(6)}',
+                              style: TextStyle(
+                                  fontSize: Get.textTheme.bodyLarge!.fontSize,
+                                  fontWeight: FontWeight.bold)),
+                          Text('ที่อยู่ :  ${user.addressDescription}',
+                              style: TextStyle(
+                                  fontSize: Get.textTheme.bodyLarge!.fontSize,
+                                  fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -318,37 +408,76 @@ class _UserSendOrderState extends State<UserSendOrder>
               },
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _tabController.animateTo(0);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+          // const SizedBox(height: 20),
+          const Spacer(), // เพิ่ม Spacer เพื่อให้ปุ่มอยู่ด้านล่าง
+          Padding(
+            padding: const EdgeInsets.only(bottom: 15),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _tabController.animateTo(0);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      minimumSize: const Size(100, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Back',
+                      style: TextStyle(
+                          fontSize: Get.textTheme.titleLarge!.fontSize,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
-                child: const Text('Back'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (_isReceiverSelected()) {
-                    _tabController.animateTo(2);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _tabController.animateTo(2);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      minimumSize: const Size(200, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Next',
+                      style: TextStyle(
+                          fontSize: Get.textTheme.titleLarge!.fontSize,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
-                child: const Text('Next'),
-              ),
-            ],
-          ),
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -371,86 +500,193 @@ class _UserSendOrderState extends State<UserSendOrder>
   }
 
   Widget _buildAddressTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-          TextField(
-            controller: receiverControllers['name']!,
-            decoration: const InputDecoration(
-              hintText: 'XXXX',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text('Telephone', style: TextStyle(fontWeight: FontWeight.bold)),
-          TextField(
-            controller: receiverControllers['telephone']!,
-            decoration: const InputDecoration(
-              hintText: 'XXXXX',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text('GPS Map', style: TextStyle(fontWeight: FontWeight.bold)),
-          TextField(
-            enabled: true,
-            controller: receiverControllers['gpsMap']!,
-            style: const TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              disabledBorder: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.map),
-                onPressed: _selectPosition,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Name",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: Get.textTheme.titleMedium!.fontSize,
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          const Text('Address Description',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          TextField(
-            controller: receiverControllers['addressDescription']!,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: 'XXXX, YYYY',
-              border: OutlineInputBorder(),
+            TextField(
+              controller: receiverControllers['name']!,
+              decoration: InputDecoration(
+                hintText: 'MaouStan',
+                hintStyle: TextStyle(color: Colors.grey.shade400),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  _tabController.animateTo(1);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+            const SizedBox(height: 20),
+            Text(
+              "Telephone",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: Get.textTheme.titleMedium!.fontSize,
+              ),
+            ),
+            TextField(
+              controller: receiverControllers['telephone']!,
+              decoration: InputDecoration(
+                hintText: '0999999999',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                hintStyle: TextStyle(color: Colors.grey.shade400),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "GPS Map",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: Get.textTheme.titleMedium!.fontSize,
+              ),
+            ),
+            TextField(
+              enabled: true,
+              controller: receiverControllers['gpsMap']!,
+              decoration: InputDecoration(
+                hintText: 'Longtitude 90.0 , Latitude 999',
+                hintStyle: TextStyle(color: Colors.grey.shade400),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                suffixIcon: IconButton(
+                  icon: Image.asset(
+                    'assets/images/google-maps.png',
+                    width: 32,
+                  ),
+                  onPressed: () {
+                    _selectPosition;
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Address Description",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: Get.textTheme.titleMedium!.fontSize,
+              ),
+            ),
+            TextField(
+              controller: receiverControllers['addressDescription']!,
+              maxLines: null,
+              minLines: 3,
+              decoration: InputDecoration(
+                hintText: 'บ้านเลขที่ 99 จังหวัด X เสาไฟหลักสุดท้าย',
+                hintStyle: TextStyle(color: Colors.grey.shade400),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: 20.0, horizontal: 10.0),
+              ),
+            ),
+            const SizedBox(height: 270),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _tabController.animateTo(1);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      minimumSize: const Size(100, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Back',
+                      style: TextStyle(
+                          fontSize: Get.textTheme.titleLarge!.fontSize,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
-                child: const Text('Back'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Implement send functionality here
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showConfirmationDialog();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      minimumSize: const Size(200, 60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Send',
+                      style: TextStyle(
+                          fontSize: Get.textTheme.titleLarge!.fontSize,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
-                child: const Text('Send'),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 50), // เพิ่มพื้นที่ว่างเพิ่มเติม
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showConfirmationDialog() {
+    Get.defaultDialog(
+      title: "Confirm",
+      middleText: "Are you sure you want to send?",
+      onConfirm: () {
+        // เพิ่มลอจิกในการส่งข้อมูลที่นี่
+        Get.back(); // ปิด dialog
+      },
+      onCancel: () {
+        Get.back(); // ปิด dialog
+      },
+      confirmTextColor: Colors.white,
+      textConfirm: "Yes",
+      textCancel: "No",
+      buttonColor: Colors.green,
     );
   }
 }

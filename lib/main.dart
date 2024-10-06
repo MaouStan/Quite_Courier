@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/app.dart';
 import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/controller/rider_profile_controller.dart';
+import 'package:quite_courier/controller/send_order_controller.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/controller/user_profile_controller2.dart';
 import 'firebase_options.dart';

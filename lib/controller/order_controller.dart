@@ -27,28 +27,61 @@ class OrderController extends GetxController {
       {
         'id': '1',
         'name': 'Package 1',
+        'image' : 'https://mpics.mgronline.com/pics/Images/563000005465501.JPEG',
+        'description': 'กล่องเปล่าขนาด  25 x 25 x 25 ซม. ใส่ของวิเศษอะไรก็ได้',
         'recipient': 'John Doe',
+        'telephone': '095789546',
+        'gpsMap': '111,111',
+        'addressDescription':
+            'บ้านเลขที่ XXX จังหวัด YY อำเภอ ZZ รหัสไปรษณี 444444 เสาไฟหลักสุดท้าย',
+        'rider': '',
+        'riderphone': '',
+        'vehicleRegistration': '',
         'sentDate': DateTime.now().subtract(const Duration(days: 2)),
         'status': OrderStatus.pending,
       },
       {
         'id': '2',
         'name': 'Package 2',
+        'description': 'กล่องเปล่าขนาด  25 x 25 x 25 ซม. ใส่ของวิเศษอะไรก็ได้',
         'recipient': 'Jane Smith',
+        'telephone': '095789546',
+        'gpsMap': '999,999',
+        'addressDescription':
+            'บ้านเลขที่ XXX จังหวัด YY อำเภอ ZZ รหัสไปรษณี 444444 เสาไฟหลักสุดท้าย',
+        'rider': 'Makie go',
+        'riderphone': '0666666666',
+        'vehicleRegistration': 'กข-127',
         'sentDate': DateTime.now().subtract(const Duration(days: 1)),
-        'status': OrderStatus.inProgress,
+        'status': OrderStatus.received,
       },
       {
         'id': '3',
         'name': 'Package 3',
+        'description': 'กล่องเปล่าขนาด  25 x 25 x 25 ซม. ใส่ของวิเศษอะไรก็ได้',
         'recipient': 'Bob Johnson',
+        'telephone': '095789546',
+        'gpsMap': '888,888',
+        'addressDescription':
+            'บ้านเลขที่ XXX จังหวัด YY อำเภอ ZZ รหัสไปรษณี 444444 เสาไฟหลักสุดท้าย',
+        'rider': 'Makie go',
+        'riderphone': '0666666666',
+        'vehicleRegistration': 'กข-256',
         'sentDate': DateTime.now(),
         'status': OrderStatus.inProgress,
       },
       {
         'id': '4',
         'name': 'Package 8',
+        'description': 'กล่องเปล่าขนาด  25 x 25 x 25 ซม. ใส่ของวิเศษอะไรก็ได้',
         'recipient': 'John Snow',
+        'telephone': '095789546',
+        'gpsMap': '666,666',
+        'addressDescription':
+            'บ้านเลขที่ XXX จังหวัด YY อำเภอ ZZ รหัสไปรษณี 444444 เสาไฟหลักสุดท้าย',
+        'rider': 'Makie go',
+        'riderphone': '0666666666',
+        'vehicleRegistration': 'กข-3556',
         'sentDate': DateTime.now(),
         'status': OrderStatus.sent,
       },
@@ -79,7 +112,6 @@ class OrderController extends GetxController {
         'sentDate': DateTime.now(),
         'status': OrderStatus.pending,
       },
-      
     ]);
   }
 

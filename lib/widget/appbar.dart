@@ -58,7 +58,10 @@ class _CustomAppBarState extends State<CustomAppBar> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, size: 40),
+          icon: const Icon(
+            Icons.menu,
+            size: 40,
+          ),
           onPressed: () {
             Scaffold.of(context).openDrawer();
           },

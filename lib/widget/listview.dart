@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/pages/sender_order_detail.dart';
 
 class OrderListView extends StatelessWidget {
   final bool useIncomingData;
@@ -26,61 +29,70 @@ class OrderListView extends StatelessWidget {
     );
   }
 
- List<Map<String, dynamic>> _getOrders(OrderController controller) {
-  List<Map<String, dynamic>> selectedOrders = List.from(
-    useIncomingData ? controller.incomingPackages : controller.sampleOrders
-  );
-  
-  selectedOrders.sort((a, b) =>
-      (b['sentDate'] as DateTime).compareTo(a['sentDate'] as DateTime));
-  
-  if (limit != null && limit! > 0 && limit! < selectedOrders.length) {
-    return selectedOrders.take(limit!).toList();
+  List<Map<String, dynamic>> _getOrders(OrderController controller) {
+    List<Map<String, dynamic>> selectedOrders = List.from(useIncomingData
+        ? controller.incomingPackages
+        : controller.sampleOrders);
+
+    selectedOrders.sort((a, b) =>
+        (b['sentDate'] as DateTime).compareTo(a['sentDate'] as DateTime));
+
+    if (limit != null && limit! > 0 && limit! < selectedOrders.length) {
+      return selectedOrders.take(limit!).toList();
+    }
+
+    return selectedOrders;
   }
-  
-  return selectedOrders;
-}
 
   Widget _buildOrderItem(
       Map<String, dynamic> order, OrderController controller) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color:
-            useIncomingData ? const Color(0xFF8CCBE8) : const Color(0xFFEAE3D1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(order['name'],
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            Row(
-              children: [
-                Image.asset(
-                  'assets/images/logo.png',
-                  width: 120,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(useIncomingData
-                        ? 'ผู้ส่ง : ${order['sender']}'
-                        : 'ผู้รับ : ${order['recipient']}'),
-                    Text(
-                        'ส่งเมื่อวันที่ : ${(order['sentDate'] as DateTime).toString().split(' ')[0]}'),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildTimeline(order['status'] as OrderStatus),
-            const SizedBox(height: 8),
-            Text(
-                'สถานะ: ${_timelineLabels[OrderStatus.values.indexOf(order['status'] as OrderStatus)]}'),
-          ],
+    return InkWell(
+      onTap: useIncomingData
+    ? null
+    : () {
+        log(order['id']);
+        Get.to(() => SenderOrderDetail(orderId: order['id']));
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: useIncomingData
+              ? const Color(0xFF8CCBE8)
+              : const Color(0xFFEAE3D1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(order['name'],
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 120,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(useIncomingData
+                          ? 'ผู้ส่ง : ${order['sender']}'
+                          : 'ผู้รับ : ${order['recipient']}'),
+                      Text(
+                          'ส่งเมื่อวันที่ : ${(order['sentDate'] as DateTime).toString().split(' ')[0]}'),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _buildTimeline(order['status'] as OrderStatus),
+              const SizedBox(height: 8),
+              Text(
+                  'สถานะ: ${_timelineLabels[OrderStatus.values.indexOf(order['status'] as OrderStatus)]}'),
+            ],
+          ),
         ),
       ),
     );
