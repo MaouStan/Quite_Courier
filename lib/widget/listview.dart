@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/pages/reciver_order_detail.dart';
 import 'package:quite_courier/pages/sender_order_detail.dart';
 
 class OrderListView extends StatelessWidget {
@@ -48,11 +49,14 @@ class OrderListView extends StatelessWidget {
       Map<String, dynamic> order, OrderController controller) {
     return InkWell(
       onTap: useIncomingData
-    ? null
-    : () {
-        log(order['id']);
-        Get.to(() => SenderOrderDetail(orderId: order['id']));
-      },
+          ? () {
+            
+              Get.to(() => ReciverOrderDetail(orderId: order['id']));
+            }
+          : () {
+              log(order['id']);
+              Get.to(() => SenderOrderDetail(orderId: order['id']));
+            },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
