@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/sender_list_view_page.dart';
+import 'package:quite_courier/pages/sender_order_detail.dart';
+import 'package:quite_courier/pages/user_send_order.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
@@ -129,6 +131,7 @@ class _UserhomePageState extends State<UserhomePage> {
         child: FloatingActionButton(
           onPressed: () {
             log("กดปุ่ม +");
+            Get.to(() => UserSendOrder());
           },
           child: const Icon(Icons.add, size: 50),
           backgroundColor: const Color(0xFFE2E0E0),

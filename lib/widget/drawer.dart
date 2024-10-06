@@ -2,7 +2,10 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
+import 'package:quite_courier/pages/user_home_page.dart';
+import 'package:quite_courier/pages/user_send_order.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({
@@ -76,7 +79,8 @@ class MyDrawer extends StatelessWidget {
               size: 40,
             ),
             onTap: () {
-              log('Home');
+              Get.to(() => UserhomePage());
+             
             },
           ),
           const SizedBox(
@@ -109,7 +113,7 @@ class MyDrawer extends StatelessWidget {
                 style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize)),
             leading: const Icon(Icons.file_upload_outlined, size: 40),
             onTap: () {
-              log('Recieve');
+              Get.to(() => RecieverListViewPage());
             },
           ),
           const SizedBox(
@@ -142,7 +146,7 @@ class MyDrawer extends StatelessWidget {
                 style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize)),
             leading: const Icon(Icons.send_outlined, size: 40),
             onTap: () {
-              log('Send');
+              Get.to(()=> UserSendOrder());
             },
           ),
           const SizedBox(

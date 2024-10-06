@@ -128,9 +128,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   const Tab(text: 'Personal Data'),
                   Tab(text: widget.role == 'Rider' ? 'Vehicle' : 'Address'),
                 ],
-                labelColor: Colors.black,
+                labelColor: Colors.purple,
                 indicatorColor: Colors.purple,
-                unselectedLabelColor: Colors.grey,
+                unselectedLabelColor:   const Color(0xff5f6368),
               ),
               SizedBox(
                 height: 600,

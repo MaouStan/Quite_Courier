@@ -2,6 +2,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/pages/sender_order_detail.dart';
+import 'package:quite_courier/pages/user_send_order.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
@@ -34,22 +36,22 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
             child: Column(
               children: [
                 Obx(() => Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0EAE2),
-                    borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          'จัดส่งแล้ว', orderController.sentOrders.value),
-                        _buildStatItem(
-                          'กำลังส่ง', orderController.inProgressOrders.value),
-                      ],
-                    ),
-                  ),
-                )),
+                      decoration: BoxDecoration(
+                          color: const Color(0xFFF0EAE2),
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem(
+                                'จัดส่งแล้ว', orderController.sentOrders.value),
+                            _buildStatItem('กำลังส่ง',
+                                orderController.inProgressOrders.value),
+                          ],
+                        ),
+                      ),
+                    )),
                 const SizedBox(height: 8),
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -69,7 +71,7 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
         height: 80,
         child: FloatingActionButton(
           onPressed: () {
-            log("กดปุ่ม +");
+            Get.to(() => UserSendOrder());
           },
           child: const Icon(Icons.add, size: 50),
           backgroundColor: const Color(0xFFE2E0E0),
@@ -85,9 +87,9 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
         Text(
           label,
           style: TextStyle(
-            fontSize: Get.textTheme.titleMedium!.fontSize,
-            color: Colors.black,
-            fontWeight: FontWeight.bold),
+              fontSize: Get.textTheme.titleMedium!.fontSize,
+              color: Colors.black,
+              fontWeight: FontWeight.bold),
         ),
         const SizedBox(width: 20),
         Text(
