@@ -45,7 +45,7 @@ class _RiderHistoryState extends State<RiderHistoryPage> {
                 ),
               ),
               SizedBox(height: 12.0,),
-              OrderListView(useIncomingData : true),
+              OrderListView(useIncomingData : true, useCompleategData : true),
             ],
           ),
         ),

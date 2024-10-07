@@ -12,6 +12,7 @@ class OrderController extends GetxController {
   var currentStatus = OrderStatus.pending.obs;
   var sampleOrders = <Map<String, dynamic>>[].obs;
   var incomingPackages = <Map<String, dynamic>>[].obs;
+  var completedPackages = <Map<String, dynamic>>[].obs;
 
   @override
   void onInit() {
@@ -104,7 +105,7 @@ class OrderController extends GetxController {
         'name': 'พัสดุจาก กทม.',
         'description': 'พัสดุหรือป่าวนะ?',
         'sender': 'คุณสมชาย ใจดี',
-        'telephone': '010235468',
+        'sendertelephone': '010235468',
         'rider': 'Bubble Bee',
         'riderphone': '0123456889',
         'vehicleRegistration': 'งอง-555',
@@ -116,7 +117,7 @@ class OrderController extends GetxController {
         'name': 'เอกสารด่วน',
         'description': 'กล่องเปล่าขนาด  25 x 25 x 25 ซม. ใส่ของวิเศษอะไรก็ได้',
         'sender': 'บริษัท ABC จำกัด',
-        'telephone': '010235468',
+        'sendertelephone': '010235468',
         'rider': 'Bubble Bee',
         'riderphone': '0123456889',
         'vehicleRegistration': 'งอง-555',
@@ -128,7 +129,7 @@ class OrderController extends GetxController {
         'name': 'สินค้าออนไลน์',
         'description': 'เสื้อผ้าสินค่าออนไลน์นำเข้า',
         'sender': 'ร้านค้าออนไลน์ XYZ',
-        'telephone': '010235468',
+        'sendertelephone': '010235468',
         'rider': 'Bubble Bee',
         'riderphone': '0123456889',
         'vehicleRegistration': 'งอง-555',
@@ -136,7 +137,60 @@ class OrderController extends GetxController {
         'status': OrderStatus.pending,
       },
     ]);
+
+     completedPackages.assignAll([
+    {
+      'id': 'IN1',
+      'name': 'พัสดุจาก กทม.',
+      'description': 'พัสดุหรือป่าวนะ?',
+      'sender': 'คุณสมชาย ใจดี',
+      'sendertelephone': '010235468',
+      'rider': 'Bubble Bee',
+      'riderphone': '0123456889',
+      'vehicleRegistration': 'งอง-555',
+      'sentDate': DateTime.now().subtract(const Duration(days: 3)),
+      'status': OrderStatus.sent,
+    },
+    {
+      'id': 'IN2',
+      'name': 'เอกสารด่วน',
+      'description': 'กล่องเปล่าขนาด  25 x 25 x 25 ซม. ใส่ของวิเศษอะไรก็ได้',
+      'sender': 'บริษัท ABC จำกัด',
+      'sendertelephone': '010235468',
+      'rider': 'Bubble Bee',
+      'riderphone': '0123456889',
+      'vehicleRegistration': 'งอง-555',
+      'sentDate': DateTime.now().subtract(const Duration(days: 5)),
+      'status': OrderStatus.sent,
+    },
+    {
+      'id': 'IN3',
+      'name': 'ของขวัญจากเพื่อน',
+      'description': 'กล่องของขวัญเล็กๆ',
+      'sender': 'คุณวิทย์ สนธิ',
+      'sendertelephone': '015678945',
+      'rider': 'Bubble Bee',
+      'riderphone': '0123456889',
+      'vehicleRegistration': 'งอง-555',
+      'sentDate': DateTime.now().subtract(const Duration(days: 2)),
+      'status': OrderStatus.sent,
+    },
+    {
+      'id': 'IN4',
+      'name': 'เสื้อผ้าจากออนไลน์',
+      'description': 'เสื้อผ้าใหม่จากร้านค้าออนไลน์',
+      'sender': 'ร้านค้า XYZ',
+      'sendertelephone': '019876543',
+      'rider': 'Bubble Bee',
+      'riderphone': '0123456889',
+      'vehicleRegistration': 'งอง-555',
+      'sentDate': DateTime.now().subtract(const Duration(days: 4)),
+      'status': OrderStatus.sent,
+    },
+  ]);
   }
+
+
 
   void updateOrderStatus(String orderId, OrderStatus newStatus) {
     int index = sampleOrders.indexWhere((order) => order['id'] == orderId);

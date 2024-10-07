@@ -8,9 +8,14 @@ import 'package:quite_courier/pages/sender_order_detail.dart';
 
 class OrderListView extends StatelessWidget {
   final bool useIncomingData;
+  final bool useCompleategData;
   final int? limit;
 
-  OrderListView({super.key, this.useIncomingData = false, this.limit});
+  OrderListView(
+      {super.key,
+      this.useIncomingData = false,
+      this.useCompleategData = false,
+      this.limit});
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +36,13 @@ class OrderListView extends StatelessWidget {
   }
 
   List<Map<String, dynamic>> _getOrders(OrderController controller) {
-    List<Map<String, dynamic>> selectedOrders = List.from(useIncomingData
-        ? controller.incomingPackages
-        : controller.sampleOrders);
+    List<Map<String, dynamic>> selectedOrders = List.from(
+      useIncomingData
+          ? (useCompleategData
+              ? controller.completedPackages
+              : controller.incomingPackages)
+          : controller.sampleOrders,
+    );
 
     selectedOrders.sort((a, b) =>
         (b['sentDate'] as DateTime).compareTo(a['sentDate'] as DateTime));
@@ -50,7 +59,6 @@ class OrderListView extends StatelessWidget {
     return InkWell(
       onTap: useIncomingData
           ? () {
-            
               Get.to(() => ReciverOrderDetail(orderId: order['id']));
             }
           : () {
