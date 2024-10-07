@@ -3,15 +3,21 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/widget/status.dart';
 
 class OrderDetailContent extends StatelessWidget {
+  final UserType userType;
+
   final Map<String, dynamic> order;
   final int currentStep;
 
-  const OrderDetailContent(
-      {required this.order, required this.currentStep, Key? key})
-      : super(key: key);
+  const OrderDetailContent({
+    required this.order,
+    required this.currentStep,
+    required this.userType,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -90,12 +96,32 @@ class OrderDetailContent extends StatelessWidget {
               const Divider(
                   color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
               _buildAddressDescription(),
-                            const Divider(
-                  color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
-              _buildSenderDetails(),
-              const Divider(
-                  color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
-
+              if (userType == UserType.rider) ...[
+                Text(
+                  'รายละเอียดผู้ส่ง',
+                  style: TextStyle(
+                    fontSize: Get.textTheme.titleLarge!.fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const Divider(
+                  color: Colors.black,
+                  thickness: 1,
+                  indent: 16,
+                  endIndent: 16,
+                ),
+                _buildSenderDetails(),
+                const Divider(
+                  color: Colors.black,
+                  thickness: 1,
+                  indent: 16,
+                  endIndent: 16,
+                ),
+              ],
+              const SizedBox(
+                height: 12.0,
+              ),
               _buildMapButton(),
             ],
           ),
@@ -211,7 +237,7 @@ class OrderDetailContent extends StatelessWidget {
     );
   }
 
-    Widget _buildSenderDetails() {
+  Widget _buildSenderDetails() {
     return Container(
       decoration: const BoxDecoration(color: Colors.white),
       padding: const EdgeInsets.all(12.0),
@@ -230,7 +256,7 @@ class OrderDetailContent extends StatelessWidget {
                 style: _detailsTextStyle(),
               ),
               const SizedBox(height: 4),
-              Text('เบอร์โทร : ${order['telephone']}',
+              Text('เบอร์โทร : ${order['sendertelephone']}',
                   style: _detailsTextStyle()),
             ],
           ),
@@ -238,7 +264,6 @@ class OrderDetailContent extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildAddressDescription() {
     return Padding(
@@ -254,7 +279,7 @@ class OrderDetailContent extends StatelessWidget {
 
   Widget _buildMapButton() {
     return Padding(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.all(16.0),
       child: SizedBox(
         height: 65,
         width: 200,

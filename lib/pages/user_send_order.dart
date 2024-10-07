@@ -179,28 +179,6 @@ class _UserSendOrderState extends State<UserSendOrder>
           ),
           backgroundColor: Colors.white,
           elevation: 0,
-          // bottom: PreferredSize(
-          //   preferredSize: const Size.fromHeight(48.0),
-          //   child: Container(
-          //     color: Colors.white,
-          //     child: TabBar(
-          //       controller: _tabController,
-          //       labelColor: Colors.black,
-          //       unselectedLabelColor: Colors.grey,
-          //       onTap: (index) {
-          //         // Prevent tab clicks
-          //         dev.log('index: $index');
-          //         dev.log('isItemDetailsComplete: ${_isItemDetailsComplete()}');
-          //         dev.log('isReceiverSelected: ${_isReceiverSelected()}');
-          //         if (index == 1 && !_isItemDetailsComplete()) {
-          //           _tabController.animateTo(0);
-          //         } else if (index == 2 && !_isReceiverSelected()) {
-          //           _tabController.animateTo(1);
-          //         }
-          //       },
-          //     ),
-          //   ),
-          // ),
         ),
         body: Column(
           children: [
