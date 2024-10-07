@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/detail.dart';
 import 'package:quite_courier/widget/drawer.dart';
@@ -26,7 +27,7 @@ class _RiderOrderDetailState extends State<RiderOrderDetail> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: const MyDrawer(),
-      body: OrderDetailContent(order: order, currentStep: currentStep),
+      body: OrderDetailContent(order: order, currentStep: currentStep, userType: UserType.rider,),
     );
   }
 }

@@ -21,7 +21,7 @@ class App extends StatelessWidget {
         useMaterial3: true,
         textTheme: GoogleFonts.lexendTextTheme(),
       ),
-      home: const RiderOrderDetail(orderId: '4',),
+      home: const LoadingPage(),
     );
   }
 }

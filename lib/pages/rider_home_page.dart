@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data.dart';
+import 'package:quite_courier/pages/rider_order_detail.dart';
 import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
@@ -38,8 +39,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(userType: UserType.rider),
-      drawer: MyDrawer(userType: UserType.rider),
+      appBar: const CustomAppBar(userType: UserType.rider),
+      drawer: const MyDrawer(userType: UserType.rider),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -222,6 +223,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                         ),
                         onPressed: () {
                           // Handle additional action
+                          Get.to(() => const RiderOrderDetail(orderId: '4',));
                         },
                         child: const Text('เพิ่มเติม',
                             style: TextStyle(color: Colors.white)),

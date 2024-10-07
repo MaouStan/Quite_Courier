@@ -24,8 +24,8 @@ class _UserhomePageState extends State<UserhomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
-      drawer: MyDrawer(),
+      appBar: const CustomAppBar(),
+      drawer: const MyDrawer(),
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Padding(
@@ -131,7 +131,7 @@ class _UserhomePageState extends State<UserhomePage> {
         child: FloatingActionButton(
           onPressed: () {
             log("กดปุ่ม +");
-            Get.to(() => UserSendOrder());
+            Get.to(() => const UserSendOrder());
           },
           backgroundColor: const Color(0xFFE2E0E0),
           shape: const CircleBorder(),

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
+import 'package:quite_courier/pages/rider_history_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
 import 'package:quite_courier/pages/user_home_page.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
@@ -94,10 +95,10 @@ class MyDrawer extends StatelessWidget {
             style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize)),
         leading: const Icon(Icons.history_outlined, size: 40),
         onTap: () {
-          if (Get.currentRoute == '/rider_history_page') {
-            return;
-          }
-          // Get.to(() => const RiderHistoryPage(), transition: Transition.fade);
+          // if (Get.currentRoute == '/rider_history_page') {
+          //   return;
+          // }
+          Get.to(() => const RiderHistoryPage(), transition: Transition.fade);
         },
       ),
       const SizedBox(height: 10),
