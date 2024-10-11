@@ -1,5 +1,9 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quite_courier/pages/user_home_page.dart';
 
 class SigninPage extends StatefulWidget {
   const SigninPage({super.key});
@@ -15,8 +19,8 @@ class _SigninPageState extends State<SigninPage> {
   final TextEditingController _telephoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
- // Method to validate input fields
-  void _validateAndSignIn() {
+  // Method to validate input fields and sign in with Firebase
+  Future<void> _validateAndSignIn() async {
     String telephone = _telephoneController.text.trim(); // Trim whitespace
     String password = _passwordController.text;
 
@@ -47,11 +51,56 @@ class _SigninPageState extends State<SigninPage> {
         snackPosition: SnackPosition.TOP,
       );
     } else {
-      // Proceed with sign in logic
-      Get.to(
-        const SigninPage(),
-        transition: Transition.noTransition
-      );
+      // Proceed with sign in logic using Firebase
+      try {
+        // Query Firestore for the user with the matching phone number
+        var userQuery = await FirebaseFirestore.instance
+            .collection('users')
+            .where('telephone', isEqualTo: telephone)
+            .get();
+
+        if (userQuery.docs.isNotEmpty) {
+          var userDoc = userQuery.docs.first;
+          var userData = userDoc.data();
+
+          // Check if password matches
+          if (userData['password'] == password) {
+            log('succesfully');
+            log(telephone);
+            Get.to( () =>
+              const UserhomePage(), // Replace this with the target page
+              transition: Transition.noTransition,
+            );
+          } else {
+            // Password incorrect
+            Get.snackbar(
+              'Incorrect Password',
+              'The password you entered is incorrect.',
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+              snackPosition: SnackPosition.TOP,
+            );
+          }
+        } else {
+          // User not found
+          Get.snackbar(
+            'User Not Found',
+            'No user found with this telephone number.',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.TOP,
+          );
+        }
+      } catch (e) {
+        // Handle errors
+        Get.snackbar(
+          'Error',
+          'An error occurred while signing in. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+        );
+      }
     }
   }
 
@@ -113,7 +162,7 @@ class _SigninPageState extends State<SigninPage> {
                         fontSize: Get.textTheme.titleMedium!.fontSize,
                       ),
                     ),
-                    
+
                     TextField(
                       controller: _telephoneController,
                       decoration: InputDecoration(
@@ -136,7 +185,7 @@ class _SigninPageState extends State<SigninPage> {
                         fontSize: Get.textTheme.titleMedium!.fontSize,
                       ),
                     ),
-                    
+
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscureText,
