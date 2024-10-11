@@ -1,11 +1,14 @@
 import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quite_courier/pages/rider_home_page.dart';
+import 'package:quite_courier/pages/signin_page.dart';
 import 'dart:io';
 
 import 'package:quite_courier/pages/user_home_page.dart';
+import 'package:quite_courier/services/user_service.dart';
 
 class SignUpPage extends StatefulWidget {
   final String role;
@@ -22,6 +25,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _addDescripController = TextEditingController();
+  String location = '37.421998, -122.084';
   bool _obscureText = true;
   File? _profileImage;
   File? _vehicleImage;
@@ -52,6 +58,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
+        log(_profileImage!.path);
       });
     }
   }
@@ -64,6 +71,123 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         _vehicleImage = File(pickedFile.path);
       });
     }
+  }
+
+  final UserService _userService = UserService();
+
+  void _register() async {
+    try {
+      if (!_validateInputs()) {
+        return;
+      }
+
+      final String telephone = _telephoneController.text.trim();
+      final String password = _passwordController.text.trim();
+      final String confirmPassword = _confirmPasswordController.text.trim();
+      final String name = _nameController.text.trim();
+      final String description = _addDescripController.text.trim();
+
+      if (!_validatePasswords(password, confirmPassword)) {
+        return;
+      }
+
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      await _userService.registerUser(
+        telephone: telephone,
+        password: password,
+        name: name,
+        description: description,
+        location: location,
+        profileImage: _profileImage,
+      );
+
+      Get.back();
+      Get.snackbar(
+        'Success',
+        'User registered successfully',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      Get.offAll(() => const SigninPage());
+    } catch (e) {
+      // Close loading dialog if it's showing
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+
+      // Show error message
+      Get.snackbar(
+        'Error',
+        _getErrorMessage(e),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+// Validate all required inputs
+  bool _validateInputs() {
+    if (_telephoneController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty ||
+        _nameController.text.trim().isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please fill in all required fields',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    // Add phone number format validation if needed
+    if (!_isValidPhoneNumber(_telephoneController.text.trim())) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid phone number',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+// Validate password and confirmation
+  bool _validatePasswords(String password, String confirmPassword) {
+    if (password != confirmPassword) {
+      Get.snackbar(
+        'Error',
+        'Passwords do not match',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+// Helper method to validate phone number format
+  bool _isValidPhoneNumber(String phone) {
+    // Add your phone number validation logic here
+    // Example: check if it's a valid Thai phone number
+    final RegExp phoneRegex = RegExp(r'^0[0-9]{9}$');
+    return phoneRegex.hasMatch(phone);
+  }
+
+// Convert error to user-friendly message
+  String _getErrorMessage(dynamic error) {
+    if (error is String) {
+      return error;
+    }
+    // Add specific error handling based on your backend responses
+    return 'An error occurred during registration. Please try again.';
   }
 
   @override
@@ -131,7 +255,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 ],
                 labelColor: Colors.purple,
                 indicatorColor: Colors.purple,
-                unselectedLabelColor:   const Color(0xff5f6368),
+                unselectedLabelColor: const Color(0xff5f6368),
               ),
               SizedBox(
                 height: 600,
@@ -320,6 +444,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 ),
               ),
               TextField(
+                controller: _nameController,
                 decoration: InputDecoration(
                   hintText: 'MaouStan',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -430,6 +555,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           TextField(
             maxLines: null,
             minLines: 3,
+            controller: _addDescripController,
             decoration: InputDecoration(
               hintText: 'บ้านเลขที่ 99 จังหวัด X เสาไฟหลักสุดท้าย',
               hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -468,8 +594,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ElevatedButton(
                 onPressed: () {
                   log('Sing up');
-                  Get.to(() => const UserhomePage(),
-                      transition: Transition.noTransition);
+                  _register();
+                  // Get.to(() => const UserhomePage(),
+                  //     transition: Transition.noTransition);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF84C8E8),

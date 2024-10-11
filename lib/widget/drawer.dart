@@ -6,6 +6,7 @@ import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/rider_history_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
 import 'package:quite_courier/pages/user_home_page.dart';
+import 'package:quite_courier/pages/user_profile_page.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/pages/rider_home_page.dart';
@@ -192,7 +193,7 @@ class MyDrawer extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     log('view profile');
-                    Get.to(() => const RiderProfilePage(),
+                    Get.to(() => const UserProfilePage(),
                         transition: Transition.fade);
                   },
                   child: Text('view profile',

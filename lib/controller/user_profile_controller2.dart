@@ -73,5 +73,4 @@ class UserProfileController2 extends GetxController {
     _temporaryImage = null;
   }
 
-  // ... existing methods ...
 }

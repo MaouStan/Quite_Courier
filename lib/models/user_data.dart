@@ -1,9 +1,9 @@
 class UserData {
   late final String image;
-  final String telephone;
-  final String name;
-  final String gpsMap;
-  final String addressDescription;
+  late final String telephone;
+  late final String name;
+  late final String gpsMap;
+  late final String addressDescription;
 
   UserData({
     required this.image,
@@ -13,5 +13,5 @@ class UserData {
     required this.addressDescription,
   });
 
-  // You can add methods like fromJson, toJson, etc., if needed
+  
 }
