@@ -18,6 +18,7 @@ import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:quite_courier/services/auth_service.dart';
 
 class RiderHomePage extends StatefulWidget {
   const RiderHomePage({super.key});
@@ -30,15 +31,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
   final RiderController stateController = Get.find<RiderController>();
   RxList<OrderDataRes> pendingOrders = <OrderDataRes>[].obs;
   Timer? _timer;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
     _initialize();
-    // Start periodic polling
-    _timer = Timer.periodic(Duration(seconds: 3), (timer) {
-      _fetchPendingOrders();
-    });
   }
 
   @override
@@ -48,11 +46,21 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Future<void> _initialize() async {
-    await _fetchPendingOrders();
     var myOrder = await OrderService.fetchOrderWithRiderAndState(
         stateController.riderData.value.telephone, OrderState.accepted);
-    stateController.currentOrder = myOrder.isNotEmpty ? myOrder.first : null;
+    stateController.currentOrder.value =
+        myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
+    if (stateController.currentOrder.value != null) {
+      await _fetchPendingOrders();
+    }
+
+    // Start periodic polling
+    _timer = Timer.periodic(Duration(seconds: 3), (timer) {
+      if (stateController.currentOrder.value != null) {
+        _fetchPendingOrders();
+      }
+    });
   }
 
   Future<void> _fetchPendingOrders() async {
@@ -81,7 +89,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
               _buildProfileSection(),
               const SizedBox(height: 16),
               Expanded(
-                child: Obx(() => stateController.currentOrder == null
+                child: Obx(() => stateController.currentOrder.value == null
                     ? _buildPendingOrdersSection()
                     : _buildSendingOrderSection()),
               ),
@@ -258,8 +266,10 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
         bool success = await OrderService.updateOrder(order);
         if (success) {
-          stateController.currentOrder = order;
+          stateController.currentOrder.value = order;
           stateController.currentState.value = RiderOrderState.sendingOrder;
+          stateController
+              .startLocationUpdates(); // Start location updates when accepting an order
           Get.back(); // Close dialog
           setState(() {});
         } else {
@@ -283,8 +293,10 @@ class _RiderHomePageState extends State<RiderHomePage> {
         order.riderVehicleRegistration = '';
         bool success = await OrderService.updateOrder(order);
         if (success) {
-          stateController.currentOrder = null;
+          stateController.currentOrder.value = null;
           stateController.currentState.value = RiderOrderState.waitGetOrder;
+          stateController
+              .stopLocationUpdates(); // Stop location updates when canceling an order
           Get.back(); // Close dialog
           setState(() {});
         }
@@ -293,13 +305,15 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Future<void> _updateOrderState(OrderState newState) async {
-    if (stateController.currentOrder == null) return;
+    if (stateController.currentOrder.value == null) return;
     Get.dialog(const Center(child: CircularProgressIndicator()));
     File? image1, image2;
     if (newState == OrderState.onDelivery) {
       image1 = await Utils().takePhoto();
     } else if (newState == OrderState.completed) {
       image2 = await Utils().takePhoto();
+      stateController
+          .stopLocationUpdates(); // Stop location updates when delivery is completed
     }
 
     if (image1 == null && image2 == null) {
@@ -307,13 +321,15 @@ class _RiderHomePageState extends State<RiderHomePage> {
       return;
     }
 
-    bool success = await OrderService.updateOrder(stateController.currentOrder!,
-        image1: image1, image2: image2);
+    bool success = await OrderService.updateOrder(
+        stateController.currentOrder.value!,
+        image1: image1,
+        image2: image2);
 
     if (success) {
-      stateController.currentOrder!.state = newState;
+      stateController.currentOrder.value!.state = newState;
       if (newState == OrderState.completed) {
-        stateController.currentOrder = null;
+        stateController.currentOrder.value = null;
         stateController.currentState.value = RiderOrderState.waitGetOrder;
         _fetchPendingOrders();
       }
@@ -325,7 +341,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Widget _buildSendingOrderSection() {
-    log('Sending order: ${stateController.currentOrder!.toString()}');
+    log('Sending order: ${stateController.currentOrder.value!.toString()}');
     return FutureBuilder<LatLng>(
       future: GeolocatorServices.getCurrentLocation(),
       builder: (context, snapshot) {
@@ -339,9 +355,9 @@ class _RiderHomePageState extends State<RiderHomePage> {
         final currentLocation =
             LatLng(snapshot.data!.latitude, snapshot.data!.longitude);
         final targetLocation =
-            stateController.currentOrder!.state == OrderState.accepted
-                ? stateController.currentOrder!.senderLocation
-                : stateController.currentOrder!.receiverLocation;
+            stateController.currentOrder.value!.state == OrderState.accepted
+                ? stateController.currentOrder.value!.senderLocation
+                : stateController.currentOrder.value!.receiverLocation;
 
         final distance = GeolocatorServices.calculateDistance(
             currentLocation, targetLocation);
@@ -354,7 +370,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
               const Text('งานที่กำลังทำ',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              _buildOrderCard(stateController.currentOrder!),
+              _buildOrderCard(stateController.currentOrder.value!),
               const SizedBox(height: 16),
               const Text('สถานะการจัดส่ง',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -362,7 +378,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
               _buildDeliveryStatus(),
               const SizedBox(height: 16),
               Text(
-                stateController.currentOrder!.state == OrderState.accepted
+                stateController.currentOrder.value!.state == OrderState.accepted
                     ? 'สถานที่รับของ' // Show this text if the order is accepted
                     : 'สถานที่ส่งของ', // Show this text if the order is on delivery
                 style:
@@ -375,7 +391,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (stateController.currentOrder!.state ==
+                    if (stateController.currentOrder.value!.state ==
                         OrderState.accepted)
                       ElevatedButton(
                         onPressed: isWithinRange
@@ -383,7 +399,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                             : null,
                         child: const Text('Start Delivery'),
                       ),
-                    if (stateController.currentOrder!.state ==
+                    if (stateController.currentOrder.value!.state ==
                         OrderState.onDelivery)
                       ElevatedButton(
                         onPressed: isWithinRange
@@ -398,7 +414,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    'You must be within 20 meters of the ${stateController.currentOrder!.state == OrderState.accepted ? "pickup" : "delivery"} location to proceed.',
+                    'You must be within 20 meters of the ${stateController.currentOrder.value!.state == OrderState.accepted ? "pickup" : "delivery"} location to proceed.',
                     style: TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
@@ -422,15 +438,15 @@ class _RiderHomePageState extends State<RiderHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildConnectingLine(
-                isActive: stateController.currentOrder!.state.index >=
+                isActive: stateController.currentOrder.value!.state.index >=
                     OrderState.accepted.index,
               ),
               _buildConnectingLine(
-                isActive: stateController.currentOrder!.state.index >=
+                isActive: stateController.currentOrder.value!.state.index >=
                     OrderState.onDelivery.index,
               ),
               _buildConnectingLine(
-                isActive: stateController.currentOrder!.state.index >=
+                isActive: stateController.currentOrder.value!.state.index >=
                     OrderState.completed.index,
               ),
             ],
@@ -442,25 +458,25 @@ class _RiderHomePageState extends State<RiderHomePage> {
             _buildStatusItem(
               icon: Icons.directions_bike,
               label: 'รอ Rider\nรับงาน',
-              isActive: stateController.currentOrder!.state.index >=
+              isActive: stateController.currentOrder.value!.state.index >=
                   OrderState.pending.index,
             ),
             _buildStatusItem(
               icon: Icons.event,
               label: 'ไรเดอร์รับงานแล้วกำลังมาเอาของ',
-              isActive: stateController.currentOrder!.state.index >=
+              isActive: stateController.currentOrder.value!.state.index >=
                   OrderState.accepted.index,
             ),
             _buildStatusItem(
               icon: Icons.local_shipping,
               label: 'กำลังจัดส่ง',
-              isActive: stateController.currentOrder!.state.index >=
+              isActive: stateController.currentOrder.value!.state.index >=
                   OrderState.onDelivery.index,
             ),
             _buildStatusItem(
               icon: Icons.check_circle,
               label: 'ส่งแล้ว',
-              isActive: stateController.currentOrder!.state.index >=
+              isActive: stateController.currentOrder.value!.state.index >=
                   OrderState.completed.index,
             ),
           ],
@@ -516,12 +532,13 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   Widget _buildMapSection() {
     LatLng orderPosition;
-    if (stateController.currentOrder!.state == OrderState.accepted) {
-      orderPosition = stateController.currentOrder!.senderLocation;
-    } else if (stateController.currentOrder!.state == OrderState.onDelivery) {
-      orderPosition = stateController.currentOrder!.receiverLocation;
+    if (stateController.currentOrder.value!.state == OrderState.accepted) {
+      orderPosition = stateController.currentOrder.value!.senderLocation;
+    } else if (stateController.currentOrder.value!.state ==
+        OrderState.onDelivery) {
+      orderPosition = stateController.currentOrder.value!.receiverLocation;
     } else {
-      orderPosition = stateController.currentOrder!.receiverLocation;
+      orderPosition = stateController.currentOrder.value!.receiverLocation;
     }
 
     return GestureDetector(
@@ -531,7 +548,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         //   MaterialPageRoute(
         //     builder: (context) => MapPage(
         //       mode: MapMode.route,
-        //       riderTelephone: stateController.currentOrder!.riderTelephone,
+        //       riderTelephone: stateController.currentOrder.value!.riderTelephone,
         //       orderPosition: orderPosition,
         //       focusOnRider: true,
         //     ),
@@ -539,7 +556,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
         // );
         Get.to(() => MapPage(
               mode: MapMode.route,
-              riderTelephone: stateController.currentOrder!.riderTelephone,
+              riderTelephone:
+                  stateController.currentOrder.value!.riderTelephone,
               orderPosition: orderPosition,
               focusOnRider: true,
             ));
@@ -548,7 +566,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         height: 200,
         child: MapPage(
           mode: MapMode.route,
-          riderTelephone: stateController.currentOrder!.riderTelephone,
+          riderTelephone: stateController.currentOrder.value!.riderTelephone,
           orderPosition: orderPosition,
           focusOnRider: true,
           update: false,

@@ -1,12 +1,12 @@
 import 'package:latlong2/latlong.dart';
 
 class RiderData {
-  final String? profileImageUrl;
-  late final String vehicleImage;
-  final String telephone;
-  final String name;
-  final LatLng location;
-  final String vehicleRegistration;
+  String? profileImageUrl;
+  String vehicleImage;
+  String telephone;
+  String name;
+  LatLng location;
+  String vehicleRegistration;
 
   RiderData({
     required this.profileImageUrl,

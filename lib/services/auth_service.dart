@@ -12,6 +12,7 @@ import 'package:quite_courier/models/user_data.dart';
 import 'package:quite_courier/models/user_sign_up_data.dart';
 import 'package:quite_courier/models/rider_sign_up_data.dart';
 import 'package:quite_courier/services/firebase_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -194,6 +195,21 @@ class AuthService {
     } catch (e) {
       dev.log('Error fetching other users: $e');
       return [];
+    }
+  }
+
+  Future<bool> updateRiderLocation(String riderTelephone, LatLng newLocation) async {
+    try {
+      await _firestore.collection('riders').doc(riderTelephone).update({
+        'location': {
+          'latitude': newLocation.latitude,
+          'longitude': newLocation.longitude,
+        },
+      });
+      return true;
+    } catch (e) {
+      dev.log('Error updating rider location: $e');
+      return false;
     }
   }
 }

@@ -235,6 +235,9 @@ class RouteModeHandler extends MapModeHandler {
             route = await MapService.fetchRoute(
                 myPosition!, orderPosition); // Update route to order position
           }
+          if (Get.currentRoute != '/MapPage') {
+            timer.cancel();
+          }
           dev.log('${DateTime.now()} Updated route');
         } catch (e) {
           dev.log('Error fetching route: $e');
