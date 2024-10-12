@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -27,24 +28,42 @@ class RiderHomePage extends StatefulWidget {
 
 class _RiderHomePageState extends State<RiderHomePage> {
   final RiderController stateController = Get.find<RiderController>();
-  List<OrderDataRes> pendingOrders = [];
-  Future<void>? futureOrders;
+  RxList<OrderDataRes> pendingOrders = <OrderDataRes>[].obs;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    futureOrders = _initialize();
+    _initialize();
+    // Start periodic polling
+    _timer = Timer.periodic(Duration(seconds: 3), (timer) {
+      _fetchPendingOrders();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initialize() async {
-    pendingOrders =
-        await OrderService.fetchOrderWithOrderState(OrderState.pending);
+    await _fetchPendingOrders();
     var myOrder = await OrderService.fetchOrderWithRiderAndState(
         stateController.riderData.value.telephone, OrderState.accepted);
     stateController.currentOrder = myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
-    setState(() {});
-    log('Pending Orders: $pendingOrders');
+  }
+
+  Future<void> _fetchPendingOrders() async {
+    try {
+      final orders =
+          await OrderService.fetchOrderWithOrderState(OrderState.pending);
+      pendingOrders.value = orders;
+      log('Pending Orders: $pendingOrders');
+    } catch (e) {
+      log('Error fetching pending orders: $e');
+    }
   }
 
   @override
@@ -53,7 +72,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       appBar: const CustomAppBar(userType: UserType.rider),
       drawer: const MyDrawer(userType: UserType.rider),
       body: RefreshIndicator(
-        onRefresh: _initialize,
+        onRefresh: _fetchPendingOrders,
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
@@ -62,20 +81,9 @@ class _RiderHomePageState extends State<RiderHomePage> {
               _buildProfileSection(),
               const SizedBox(height: 16),
               Expanded(
-                child: FutureBuilder<void>(
-                  future: futureOrders,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return const Center(child: Text('Error loading orders'));
-                    } else {
-                      return stateController.currentOrder == null
-                          ? _buildPendingOrdersSection()
-                          : _buildSendingOrderSection();
-                    }
-                  },
-                ),
+                child: Obx(() => stateController.currentOrder == null
+                    ? _buildPendingOrdersSection()
+                    : _buildSendingOrderSection()),
               ),
             ],
           ),
@@ -138,12 +146,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Expanded(
-          child: ListView.builder(
-            itemCount: pendingOrders.length,
-            itemBuilder: (context, index) {
-              return _buildOrderCard(pendingOrders[index]);
-            },
-          ),
+          child: Obx(() => ListView.builder(
+                itemCount: pendingOrders.length,
+                itemBuilder: (context, index) {
+                  return _buildOrderCard(pendingOrders[index]);
+                },
+              )),
         ),
       ],
     );
@@ -307,7 +315,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       if (newState == OrderState.completed) {
         stateController.currentOrder = null;
         stateController.currentState.value = RiderOrderState.waitGetOrder;
-        futureOrders = _initialize();
+        _fetchPendingOrders();
       }
       setState(() {});
     } else {
