@@ -92,11 +92,10 @@ class _UserHomePageState extends State<UserHomePage> {
                                 mode: MapMode.tracks,
                                 riderTelephones: sentOrders
                                     .where((order) =>
-                                        order.riderTelephone != null &&
                                         (order.state == OrderState.accepted ||
                                             order.state ==
                                                 OrderState.onDelivery))
-                                    .map((order) => order.riderTelephone!)
+                                    .map((order) => order.riderTelephone)
                                     .toSet()
                                     .toList(),
                               ));
