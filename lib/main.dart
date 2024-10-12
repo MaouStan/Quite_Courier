@@ -6,7 +6,7 @@ import 'package:quite_courier/app.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 
 import 'package:quite_courier/controller/rider_controller.dart';
-import 'package:quite_courier/controller/user_profile_controller2.dart';
+import 'package:quite_courier/controller/user_controller.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -19,7 +19,7 @@ void main() async {
 
   // Controllers
   // UserProfileController2
-  Get.put(UserProfileController2());
+  Get.put(UserController());
   // RiderController
   Get.put(RiderController());
   Get.put(OrderController());

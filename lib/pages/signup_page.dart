@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/models/auth_res.dart';
+import 'package:quite_courier/models/user_sign_up_data.dart';
+import 'package:quite_courier/models/user_data.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/rider_home_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
 import 'dart:io';
 
-import 'package:quite_courier/services/user_service.dart';
+import 'package:quite_courier/services/auth_service.dart';
+import 'package:quite_courier/models/rider_sign_up_data.dart';
 
 class SignUpPage extends StatefulWidget {
   final String role;
@@ -28,7 +32,9 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _addDescripController = TextEditingController();
-  late TextEditingController _positionController = TextEditingController();
+  final TextEditingController _positionController = TextEditingController();
+  final TextEditingController _vehicleRegistrationController =
+      TextEditingController();
   bool _obscureText = true;
   File? _profileImage;
   File? _vehicleImage;
@@ -98,9 +104,11 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     }
   }
 
-  final UserService _userService = UserService();
+  final AuthService _authService = AuthService();
 
-  void _register() async {
+  Future<void> _register() async {
+    AuthResponse? result;
+
     try {
       if (!_validateInputs()) {
         return;
@@ -121,48 +129,45 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         barrierDismissible: false,
       );
 
-      String result = await _userService.registerUser(
-        telephone: telephone,
-        password: password,
-        name: name,
-        description: description,
-        location: _positionController.text,
-        profileImage: _profileImage,
-      );
+      LatLng location = _selectedPosition ??
+          LatLng(double.parse(_positionController.text.split(',')[0]),
+              double.parse(_positionController.text.split(',')[1]));
 
-      // Clear All Old Snackbars
-      Get.closeAllSnackbars();
-      if (result == 'User registered successfully') {
-        Get.back();
-        Get.snackbar(
-          'Success',
-          result,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
+      if (widget.role == 'Rider') {
+        RiderSignUpData signUpData = RiderSignUpData(
+          telephone: telephone,
+          password: password,
+          name: name,
+          location: location,
+          vehicleRegistration: _vehicleRegistrationController.text.trim(),
         );
-        Get.offAll(() => const SigninPage());
+
+        result = await _authService.registerRider(signUpData, _profileImage, _vehicleImage);
+        // Handle result for rider registration
       } else {
-        Get.back();
-        Get.snackbar(
-          'Error',
-          result,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        UserSignUpData signUpData = UserSignUpData(
+          telephone: telephone,
+          password: password,
+          name: name,
+          addressDescription: description,
+          location: location,
         );
-      }
-    } catch (e) {
-      // Close loading dialog if it's showing
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
+
+        result = await _authService.registerUser(signUpData, _profileImage);
+        // Handle result for user registration
       }
 
-      // Show error message
-      Get.snackbar(
-        'Error',
-        _getErrorMessage(e),
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      // Handle common result processing
+    } catch (e) {
+      // Handle errors
+    }
+
+    if (result != null && !result.success) {
+      Get.closeAllSnackbars();
+      Get.snackbar('Error', result.message,
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } else {
+      Get.to(() => const SigninPage());
     }
   }
 
@@ -171,6 +176,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     if (_telephoneController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty ||
         _nameController.text.trim().isEmpty) {
+      Get.closeAllSnackbars();
       Get.snackbar(
         'Error',
         'Please fill in all required fields',
@@ -182,6 +188,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
 
     // Add phone number format validation if needed
     if (!_isValidPhoneNumber(_telephoneController.text.trim())) {
+      Get.closeAllSnackbars();
       Get.snackbar(
         'Error',
         'Please enter a valid phone number',
@@ -197,6 +204,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
 // Validate password and confirmation
   bool _validatePasswords(String password, String confirmPassword) {
     if (password != confirmPassword) {
+      Get.closeAllSnackbars();
       Get.snackbar(
         'Error',
         'Passwords do not match',
@@ -231,6 +239,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
       if (isNotify) {
+        Get.closeAllSnackbars();
         Get.snackbar(
           'Incomplete Data',
           'Please fill in all fields in the Authentication tab.',
@@ -242,6 +251,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     }
     if (!_isValidPhoneNumber(_telephoneController.text.trim())) {
       if (isNotify) {
+        Get.closeAllSnackbars();
+
         Get.snackbar(
           'Invalid Phone Number',
           'Please enter a valid phone number.',
@@ -253,6 +264,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     }
     if (_passwordController.text != _confirmPasswordController.text) {
       if (isNotify) {
+        Get.closeAllSnackbars();
+
         Get.snackbar(
           'Password Mismatch',
           'Passwords do not match.',
@@ -268,6 +281,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   bool _validatePersonalDataTab({bool isNotify = true}) {
     if (_nameController.text.isEmpty || _profileImage == null) {
       if (isNotify) {
+        Get.closeAllSnackbars();
+
         Get.snackbar(
           'Incomplete Data',
           'Please provide a name and profile image.',
@@ -385,6 +400,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           TextField(
             controller: _telephoneController,
             keyboardType: TextInputType.phone,
+            maxLength: 10,
             decoration: InputDecoration(
               hintText: '0999999999',
               filled: true,
@@ -785,6 +801,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
             ),
           ),
           TextField(
+            controller: _vehicleRegistrationController,
             decoration: InputDecoration(
               hintText: 'กข - 1111',
               hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -821,7 +838,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ElevatedButton(
                 onPressed: () {
                   dev.log('Sing up');
-                  Get.to(() => const RiderHomePage());
+                  _register();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8E97FD),

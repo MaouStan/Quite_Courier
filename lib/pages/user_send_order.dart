@@ -32,15 +32,15 @@ class _UserSendOrderState extends State<UserSendOrder>
       name: 'John Doe',
       telephone: '0912345678',
       addressDescription: '123 Main St, City',
-      image: 'assets/images/avatar.png',
-      gpsMap: '13.7563,100.5018',
+      profileImageUrl: 'assets/images/avatar.png',
+      location: LatLng(13.7563, 100.5018),
     ),
     UserData(
       name: 'Jane Smith',
       telephone: '0923456789',
       addressDescription: '456 Elm St, City',
-      image: 'assets/images/avatar.png',
-      gpsMap: '13.7563,100.5018',
+      profileImageUrl: 'assets/images/avatar.png',
+      location: LatLng(13.7563, 100.5018),
     ),
   ];
   List<UserData> _filteredUsers = [];
@@ -68,19 +68,19 @@ class _UserSendOrderState extends State<UserSendOrder>
   }
 
   void _filterUsers() {
-    final query = _searchController.text;
-    setState(() {
-      _filteredUsers = _users.where((user) {
-        return user.telephone.contains(query);
-      }).toList();
-    });
+    // final query = _searchController.text;
+    // setState(() {
+    //   _filteredUsers = _users.where((user) {
+    //     return user.telephone.contains(query);
+    //   }).toList();
+    // });
   }
 
   void _loadReceiverData(UserData user) {
-    receiverControllers['name']!.text = user.name;
-    receiverControllers['telephone']!.text = user.telephone;
-    receiverControllers['addressDescription']!.text = user.addressDescription;
-    receiverControllers['gpsMap']!.text = user.gpsMap;
+    // receiverControllers['name']!.text = user.name;
+    // receiverControllers['telephone']!.text = user.telephone;
+    // receiverControllers['addressDescription']!.text = user.addressDescription;
+    // receiverControllers['gpsMap']!.text = user.gpsMap;
   }
 
   Future<void> _showImagePickerMenu(BuildContext context) async {
@@ -359,7 +359,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                     child: ListTile(
                       leading: CircleAvatar(
                         radius: 50,
-                        backgroundImage: NetworkImage(user.image),
+                        backgroundImage: NetworkImage(user.profileImageUrl),
                       ),
                       title: Text('ชื่อ : ${user.name}',
                           style: TextStyle(

@@ -65,19 +65,20 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                       border: Border.all(color: Colors.white, width: 5),
                     ),
                     child: Obx(() {
-                      final imageUrl = riderController.riderData.value.image;
+                      final imageUrl =
+                          riderController.riderData.value.profileImageUrl;
                       return CircleAvatar(
                         radius: 80,
                         backgroundColor: Colors.grey[300],
                         backgroundImage: _selectedProfileImage != null
                             ? FileImage(_selectedProfileImage!) as ImageProvider
-                            : (imageUrl.isNotEmpty
+                            : (imageUrl != null && imageUrl.isNotEmpty
                                 ? NetworkImage(imageUrl)
                                 : null),
-                        child:
-                            (_selectedProfileImage == null && imageUrl.isEmpty)
-                                ? const Icon(Icons.person, size: 80)
-                                : null,
+                        child: (_selectedProfileImage == null &&
+                                imageUrl == null)
+                            ? const Icon(Icons.person, size: 80)
+                            : null,
                       );
                     }),
                   ),
@@ -137,7 +138,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                       GestureDetector(
                         onTap: () {
                           if (isEditMode) {
-                            _showVehiclePhotoMenu(context);
+                            _showvehicleImageMenu(context);
                           }
                         },
                         child: Container(
@@ -160,7 +161,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                                   )
                                 : Image.network(
                                     riderController
-                                        .riderData.value.vehiclePhoto,
+                                        .riderData.value.vehicleImage,
                                     errorBuilder: (context, error, stackTrace) {
                                       return const Icon(
                                         Icons.directions_car,
@@ -180,7 +181,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                           child: IconButton(
                             icon: const Icon(Icons.edit, color: Colors.black),
                             onPressed: () {
-                              _showVehiclePhotoMenu(context);
+                              _showvehicleImageMenu(context);
                             },
                           ),
                         ),
@@ -270,7 +271,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
     });
   }
 
-  void _showVehiclePhotoMenu(BuildContext context) {
+  void _showvehicleImageMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {

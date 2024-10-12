@@ -1,17 +1,18 @@
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/user_data.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart'; // {{ edit_7 }} Add Firestore import
 
-class UserProfileController2 extends GetxController {
+class UserController extends GetxController {
   final userData = UserData(
-    image: '123',
-    telephone: '123',
-    name: '123',
-    gpsMap: '123',
-    addressDescription: '123',
+    profileImageUrl: '',
+    telephone: '',
+    name: '',
+    location: LatLng(0, 0),
+    addressDescription: '',
   ).obs;
 
   // ignore: unused_field
@@ -60,7 +61,7 @@ class UserProfileController2 extends GetxController {
 
       // Update local state
       userData.update((val) {
-        val?.image = downloadUrl;
+        val?.profileImageUrl = downloadUrl;
       });
     } catch (e) {
       // Handle errors appropriately in production
@@ -72,5 +73,4 @@ class UserProfileController2 extends GetxController {
   void resetImageSelection() {
     _temporaryImage = null;
   }
-
 }

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/order_data.dart';
 import 'package:quite_courier/models/rider_data.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,11 +14,12 @@ enum RiderOrderState {
 
 class RiderController extends GetxController {
   final riderData = RiderData(
-    image: '',
+    profileImageUrl: '',
     telephone: '',
     name: '',
-    vehiclePhoto: '',
+    vehicleImage: '',
     vehicleRegistration: '',
+    location: const LatLng(0, 0),
   ).obs;
 
   var currentState = RiderOrderState.waitGetOrder.obs;
@@ -70,14 +72,14 @@ class RiderController extends GetxController {
       await FirebaseFirestore.instance
           .collection('riders')
           .doc(telephone)
-          .update({isProfileImage ? 'image' : 'vehiclePhoto': downloadUrl});
+          .update({isProfileImage ? 'image' : 'vehicleImage': downloadUrl});
 
       // Update local state
       riderData.update((val) {
         if (isProfileImage) {
-          val?.image = downloadUrl;
+          val?.vehicleImage = downloadUrl;
         } else {
-          val?.vehiclePhoto = downloadUrl;
+          val?.vehicleImage = downloadUrl;
         }
       });
     } catch (e) {
@@ -112,10 +114,12 @@ class RiderController extends GetxController {
 
       if (doc.exists) {
         riderData.value = RiderData(
-          image: doc['image'] ?? '',
+          profileImageUrl: doc['profileImageUrl'] ?? '',
+          location: LatLng(doc['location']['latitude'],
+              doc['location']['longitude']),
           telephone: doc['telephone'] ?? '',
           name: doc['name'] ?? '',
-          vehiclePhoto: doc['vehiclePhoto'] ?? '',
+          vehicleImage: doc['vehicleImage'] ?? '',
           vehicleRegistration: doc['vehicleRegistration'] ?? '',
         );
       }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quite_courier/controller/user_profile_controller2.dart';
+import 'package:quite_courier/controller/user_controller.dart';
 import 'dart:io'; // Add this import to handle File
 
 class UserProfilePage extends StatefulWidget {
@@ -11,8 +11,7 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  final UserProfileController2 userProfileController2 =
-      Get.find<UserProfileController2>();
+  final UserController userProfileController2 = Get.find<UserController>();
   Map<String, TextEditingController>? controllers;
   bool isEditMode = false; // Track edit mode
   File? _selectedImage; // Temporary variable to hold selected image
@@ -30,7 +29,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       'name': TextEditingController(
           text: userProfileController2.userData.value.name),
       'gpsMap': TextEditingController(
-          text: userProfileController2.userData.value.gpsMap),
+          text: userProfileController2.userData.value.location.toString()),
       'addressDescription': TextEditingController(
           text: userProfileController2.userData.value.addressDescription),
     };
@@ -66,16 +65,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     ),
                     child: Obx(() {
                       final imageUrl =
-                          userProfileController2.userData.value.image;
+                          userProfileController2.userData.value.profileImageUrl;
                       return CircleAvatar(
                         radius: 80,
                         backgroundColor: Colors.grey[300],
                         backgroundImage: _selectedImage != null
                             ? FileImage(_selectedImage!) as ImageProvider
-                            : (imageUrl.isNotEmpty
+                            : (imageUrl != null && imageUrl.isNotEmpty
                                 ? NetworkImage(imageUrl)
                                 : null),
-                        child: (_selectedImage == null && imageUrl.isEmpty)
+                        child: (_selectedImage == null &&
+                                (imageUrl == null || imageUrl.isEmpty))
                             ? const Icon(Icons.person, size: 80)
                             : null,
                       );

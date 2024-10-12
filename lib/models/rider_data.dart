@@ -1,17 +1,24 @@
+import 'package:latlong2/latlong.dart';
+
 class RiderData {
-  late final String image;
-  late final String vehiclePhoto;
+  final String? profileImageUrl;
+  late final String vehicleImage;
   final String telephone;
   final String name;
+  final LatLng location;
   final String vehicleRegistration;
 
   RiderData({
-    required this.image,
+    required this.profileImageUrl,
     required this.telephone,
     required this.name,
-    required this.vehiclePhoto,
+    required this.vehicleImage,
     required this.vehicleRegistration,
+    required this.location,
   });
 
-  // You can add methods like fromJson, toJson, etc., if needed
+  @override
+  String toString() {
+    return 'RiderData(vehicleImage: $vehicleImage, telephone: $telephone, name: $name, vehicleRegistration: $vehicleRegistration, location: $location)';
+  }
 }

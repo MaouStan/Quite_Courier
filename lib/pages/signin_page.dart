@@ -3,6 +3,13 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/controller/rider_controller.dart';
+import 'package:quite_courier/controller/user_controller.dart';
+import 'package:quite_courier/models/rider_data.dart';
+import 'package:quite_courier/models/user_data.dart';
+import 'package:quite_courier/pages/loading_page.dart';
+import 'package:quite_courier/pages/rider_home_page.dart';
 import 'package:quite_courier/pages/user_home_page.dart';
 
 class SigninPage extends StatefulWidget {
@@ -53,11 +60,20 @@ class _SigninPageState extends State<SigninPage> {
     } else {
       // Proceed with sign in logic using Firebase
       try {
+        var isUser = true;
         // Query Firestore for the user with the matching phone number
         var userQuery = await FirebaseFirestore.instance
             .collection('users')
             .where('telephone', isEqualTo: telephone)
             .get();
+
+        if (userQuery.docs.isEmpty) {
+          isUser = false;
+          userQuery = await FirebaseFirestore.instance
+              .collection('riders')
+              .where('telephone', isEqualTo: telephone)
+              .get();
+        }
 
         if (userQuery.docs.isNotEmpty) {
           var userDoc = userQuery.docs.first;
@@ -67,10 +83,38 @@ class _SigninPageState extends State<SigninPage> {
           if (userData['password'] == password) {
             log('succesfully');
             log(telephone);
-            Get.to( () =>
-              const UserhomePage(), // Replace this with the target page
-              transition: Transition.noTransition,
-            );
+
+            if (isUser) {
+              // Update User Controller to store user data
+              Get.find<UserController>().userData.value = UserData(
+                profileImageUrl: userData['profileImageUrl'],
+                telephone: userData['telephone'],
+                name: userData['name'],
+                location: LatLng(userData['location']['latitude'],
+                    userData['location']['longitude']),
+                addressDescription: userData['addressDescription'],
+              );
+              Get.to(
+                () => const UserhomePage(), // Replace this with the target page
+                transition: Transition.noTransition,
+              );
+              log(Get.find<UserController>().userData.value.toString());
+            } else {
+              Get.find<RiderController>().riderData.value = RiderData(
+                profileImageUrl: userData['profileImageUrl'],
+                name: userData['name'],
+                telephone: userData['telephone'],
+                vehicleImage: userData['vehicleImage'],
+                vehicleRegistration: userData['vehicleRegistration'],
+                location: LatLng(userData['location']['latitude'],
+                    userData['location']['longitude']),
+              );
+              Get.to(
+                () =>
+                    const RiderHomePage(), // Replace this with the target page
+              );
+              log(Get.find<RiderController>().riderData.value.toString());
+            }
           } else {
             // Password incorrect
             Get.snackbar(
@@ -95,7 +139,7 @@ class _SigninPageState extends State<SigninPage> {
         // Handle errors
         Get.snackbar(
           'Error',
-          'An error occurred while signing in. Please try again.',
+          'An error occurred while signing in. Please try again. $e',
           backgroundColor: Colors.red,
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
@@ -115,7 +159,7 @@ class _SigninPageState extends State<SigninPage> {
             size: 40.0,
           ),
           onPressed: () {
-            Navigator.pop(context);
+            Get.offAll(() => const LoadingPage());
           },
         ),
         title: const Text('Back',
@@ -165,6 +209,8 @@ class _SigninPageState extends State<SigninPage> {
 
                     TextField(
                       controller: _telephoneController,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 10,
                       decoration: InputDecoration(
                         hintText: '0999999999',
                         filled: true,
