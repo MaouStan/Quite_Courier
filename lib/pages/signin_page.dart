@@ -95,7 +95,7 @@ class _SigninPageState extends State<SigninPage> {
                 addressDescription: userData['addressDescription'],
               );
               Get.to(
-                () => const UserhomePage(), // Replace this with the target page
+                () => const UserHomePage(), // Replace this with the target page
                 transition: Transition.noTransition,
               );
               log(Get.find<UserController>().userData.value.toString());

@@ -16,17 +16,13 @@ class RiderOrderDetail extends StatefulWidget {
 }
 
 class _RiderOrderDetailState extends State<RiderOrderDetail> {
-  final OrderController orderController = Get.find<OrderController>();
 
   @override
   Widget build(BuildContext context) {
-    final order = orderController.sampleOrders
-        .firstWhere((o) => o['id'] == widget.orderId);
-    int currentStep = order['status'].index; // กำหนดค่าเริ่มต้นตามที่คุณต้องการ
     return Scaffold(
       appBar: const CustomAppBar(),
       drawer: const MyDrawer(),
-      body: OrderDetailContent(order: order, currentStep: currentStep, userType: UserType.rider,),
+      // body: OrderDetailContent(order: order, currentStep: currentStep, userType: UserType.rider,),
     );
   }
 }

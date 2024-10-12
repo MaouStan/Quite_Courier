@@ -11,66 +11,7 @@ class UserController extends GetxController {
     profileImageUrl: '',
     telephone: '',
     name: '',
-    location: LatLng(0, 0),
+    location: const LatLng(0, 0),
     addressDescription: '',
   ).obs;
-
-  // ignore: unused_field
-  File? _temporaryImage; // {{ edit_8 }} Temporary storage for selected image
-
-  // Method to take a photo using the camera
-  Future<File?> takePhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      return File(pickedFile.path);
-    }
-    return null;
-  }
-
-  // Method to pick an image from the gallery
-  Future<File?> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      return File(pickedFile.path);
-    }
-    return null;
-  }
-
-  // {{ edit_2 }} Upload the selected image upon confirmation
-  Future<void> uploadSelectedImage(File imageFile) async {
-    try {
-      final telephone = userData.value.telephone;
-      final fileExtension = imageFile.path.split('.').last;
-      final fileName = '$telephone.$fileExtension';
-      final storageRef =
-          FirebaseStorage.instance.ref().child('profile_images/$fileName');
-
-      // Upload the file to Firebase Storage
-      await storageRef.putFile(imageFile);
-
-      // Get the download URL
-      final downloadUrl = await storageRef.getDownloadURL();
-
-      // Update Firestore with the new image URL
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(telephone)
-          .update({'image': downloadUrl});
-
-      // Update local state
-      userData.update((val) {
-        val?.profileImageUrl = downloadUrl;
-      });
-    } catch (e) {
-      // Handle errors appropriately in production
-      print('Error uploading image: $e');
-    }
-  }
-
-  // {{ edit_3 }} Reset temporary image selection
-  void resetImageSelection() {
-    _temporaryImage = null;
-  }
 }

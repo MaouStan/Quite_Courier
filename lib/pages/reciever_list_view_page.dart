@@ -1,7 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/controller/user_controller.dart';
+import 'package:quite_courier/interfaces/order_people.dart';
+import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/models/order_data_res.dart';
+import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
@@ -14,54 +17,80 @@ class RecieverListViewPage extends StatefulWidget {
 }
 
 class _RecieverListViewPageState extends State<RecieverListViewPage> {
-  late OrderController orderController;
+  final UserController userController = Get.find<UserController>();
 
-  @override
-  void initState() {
-    super.initState();
-    orderController = Get.find<OrderController>();
+  Future<List<OrderDataRes>> fetchReceivedOrders() async {
+    try {
+      final orders = await OrderService.getOrdersByReceiver(
+          userController.userData.value.telephone);
+      return orders;
+    } catch (e) {
+      print('Error fetching received orders: $e');
+      return []; // Return an empty list in case of error
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(),
       drawer: const MyDrawer(),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Obx(() => Container(
-                      decoration: BoxDecoration(
-                          color: const Color(0xFFF0EAE2),
-                          borderRadius: BorderRadius.circular(12)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildStatItem(
-                                'จัดส่งแล้ว', orderController.receivedOrders.value),
-                            _buildStatItem('กำลังส่ง',
-                                orderController.incomingOrders.value),
-                          ],
+      body: FutureBuilder<List<OrderDataRes>>(
+        future: fetchReceivedOrders(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final receivedOrders = snapshot.data!;
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            child: SingleChildScrollView(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                            color: const Color(0xFFF0EAE2),
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatItem('รับของแล้ว', receivedOrders.length),
+                              _buildStatItem(
+                                  'ของกำลังมาส่ง',
+                                  receivedOrders
+                                      .where((order) =>
+                                          order.state != OrderState.completed)
+                                      .length),
+                            ],
+                          ),
                         ),
                       ),
-                    )),
-                const SizedBox(height: 8),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text('สิ่งที่คุณส่ง :'),
-                  ],
+                      const SizedBox(height: 8),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text('สิ่งที่คุณต้องรับ :'),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      OrderListView(useIncomingData: true, orders: receivedOrders),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                OrderListView(useIncomingData: true,),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

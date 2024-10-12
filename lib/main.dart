@@ -22,7 +22,7 @@ void main() async {
   Get.put(UserController());
   // RiderController
   Get.put(RiderController());
-  Get.put(OrderController());
+  // Get.put(OrderController());
 
   runApp(const App());
 }

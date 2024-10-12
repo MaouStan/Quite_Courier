@@ -3,8 +3,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
+import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
-import 'package:quite_courier/models/order_data.dart';
+import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/rider_order_detail.dart';
 import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
@@ -21,7 +22,7 @@ class RiderHomePage extends StatefulWidget {
 
 class _RiderHomePageState extends State<RiderHomePage> {
   final RiderController stateController = Get.find<RiderController>();
-  List<OrderData> orders = [];
+  List<OrderDataRes> orders = [];
   Future<void>? futureOrders;
 
   @override
@@ -31,7 +32,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Future<void> loadOrders() async {
-    orders = await OrderService.fetchAllOrders();
+    orders = await OrderService.fetchOrderWithOrderState(OrderState.pending);
     setState(() {});
     log('Orders: $orders');
   }
@@ -84,15 +85,15 @@ class _RiderHomePageState extends State<RiderHomePage> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const Row(
+          Row(
             children: [
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 30,
                 backgroundImage: AssetImage('assets/images/profile.png'),
               ),
-              SizedBox(width: 12),
-              Text('name',
-                  style: TextStyle(
+              const SizedBox(width: 12),
+              Text(stateController.riderData.value.name,
+                  style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFb0c7fb))),
@@ -107,9 +108,9 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 style: TextStyle(fontSize: 18, color: Color(0xFFb0c7fb)),
               ),
               Expanded(child: Container()),
-              const Text(
-                '100',
-                style: TextStyle(
+              Text(
+                stateController.orderCount.toString(),
+                style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFb0c7fb)),
@@ -120,9 +121,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 style: TextStyle(fontSize: 18, color: Color(0xFFb0c7fb)),
               ),
               Expanded(child: Container()),
-              const Text(
-                '1',
-                style: TextStyle(
+              Text(
+                stateController.currentState.value ==
+                        RiderOrderState.sendingOrder
+                    ? '1'
+                    : '0',
+                style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFb0c7fb)),
@@ -157,7 +161,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Widget _buildSendingOrderSection() {
-    log('Sending order: ${stateController.currentOrder.value.toString()}');
+    log('Sending order: ${stateController.currentOrder!.toString()}');
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +169,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
           const Text('งานที่กำลังทำ',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildOrderCard(stateController.currentOrder.value),
+          _buildOrderCard(stateController.currentOrder!),
           const SizedBox(height: 16),
           const Text('สถานะการจัดส่ง',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -173,7 +177,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
           _buildDeliveryStatus(),
           const SizedBox(height: 16),
           Text(
-            stateController.currentOrder.value.state == OrderState.accepted
+            stateController.currentOrder!.state == OrderState.accepted
                 ? 'สถานที่รับของ' // Show this text if the order is accepted
                 : 'สถานที่ส่งของ', // Show this text if the order is on delivery
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -185,7 +189,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
     );
   }
 
-  Widget _buildOrderCard(OrderData order) {
+  Widget _buildOrderCard(OrderDataRes order) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
       shape: RoundedRectangleBorder(
@@ -223,7 +227,9 @@ class _RiderHomePageState extends State<RiderHomePage> {
                         ),
                         onPressed: () {
                           // Handle additional action
-                          Get.to(() => const RiderOrderDetail(orderId: '4',));
+                          Get.to(() => const RiderOrderDetail(
+                                orderId: '4',
+                              ));
                         },
                         child: const Text('เพิ่มเติม',
                             style: TextStyle(color: Colors.white)),
@@ -241,7 +247,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                           // Handle cancel action
                           stateController.currentState.value =
                               RiderOrderState.waitGetOrder;
-                          stateController.currentOrder.value = OrderData();
+                          stateController.currentOrder = null;
                           order.state = OrderState.pending;
                           setState(() {});
                         },
@@ -265,7 +271,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                           stateController.currentState.value =
                               RiderOrderState.sendingOrder;
                           order.state = OrderState.accepted;
-                          stateController.currentOrder.value = order;
+                          stateController.currentOrder = order;
                           setState(() {});
                         },
                         child: const Text('รับงาน',
@@ -287,7 +293,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'ผู้รับ: ${order.receiverId}',
+                        'ผู้รับ: ${order.receiverName}',
                         style: const TextStyle(color: Colors.white),
                       ),
                       Text(
@@ -323,15 +329,15 @@ class _RiderHomePageState extends State<RiderHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildConnectingLine(
-                isActive: stateController.currentOrder.value.state.index >=
+                isActive: stateController.currentOrder!.state.index >=
                     OrderState.accepted.index,
               ),
               _buildConnectingLine(
-                isActive: stateController.currentOrder.value.state.index >=
+                isActive: stateController.currentOrder!.state.index >=
                     OrderState.onDelivery.index,
               ),
               _buildConnectingLine(
-                isActive: stateController.currentOrder.value.state.index >=
+                isActive: stateController.currentOrder!.state.index >=
                     OrderState.completed.index,
               ),
             ],
@@ -343,25 +349,25 @@ class _RiderHomePageState extends State<RiderHomePage> {
             _buildStatusItem(
               icon: Icons.directions_bike,
               label: 'รอ Rider\nรับงาน',
-              isActive: stateController.currentOrder.value.state.index >=
+              isActive: stateController.currentOrder!.state.index >=
                   OrderState.pending.index,
             ),
             _buildStatusItem(
               icon: Icons.event,
               label: 'ไรเดอร์รับงานแล้วกำลังมาเอาของ',
-              isActive: stateController.currentOrder.value.state.index >=
+              isActive: stateController.currentOrder!.state.index >=
                   OrderState.accepted.index,
             ),
             _buildStatusItem(
               icon: Icons.local_shipping,
               label: 'กำลังจัดส่ง',
-              isActive: stateController.currentOrder.value.state.index >=
+              isActive: stateController.currentOrder!.state.index >=
                   OrderState.onDelivery.index,
             ),
             _buildStatusItem(
               icon: Icons.check_circle,
               label: 'ส่งแล้ว',
-              isActive: stateController.currentOrder.value.state.index >=
+              isActive: stateController.currentOrder!.state.index >=
                   OrderState.completed.index,
             ),
           ],
@@ -417,25 +423,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   Widget _buildMapSection() {
     LatLng orderPosition;
-    if (stateController.currentOrder.value.state == OrderState.accepted) {
-      // Show sender's location when the order is accepted
-      orderPosition = LatLng(
-        stateController.currentOrder.value.senderLocation.latitude,
-        stateController.currentOrder.value.senderLocation.longitude,
-      );
-    } else if (stateController.currentOrder.value.state ==
-        OrderState.onDelivery) {
-      // Show receiver's location when the order is on delivery
-      orderPosition = LatLng(
-        stateController.currentOrder.value.receiverLocation.latitude,
-        stateController.currentOrder.value.receiverLocation.longitude,
-      );
+    if (stateController.currentOrder!.state == OrderState.accepted) {
+      orderPosition = stateController.currentOrder!.senderLocation;
+    } else if (stateController.currentOrder!.state == OrderState.onDelivery) {
+      orderPosition = stateController.currentOrder!.receiverLocation;
     } else {
-      // Default to receiver's location if no specific state is matched
-      orderPosition = LatLng(
-        stateController.currentOrder.value.receiverLocation.latitude,
-        stateController.currentOrder.value.receiverLocation.longitude,
-      );
+      orderPosition = stateController.currentOrder!.receiverLocation;
     }
 
     return GestureDetector(
@@ -445,7 +438,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
           MaterialPageRoute(
             builder: (context) => MapPage(
               mode: MapMode.route,
-              riderId: stateController.currentOrder.value.riderId,
+              riderId: stateController.currentOrder!.riderTelephone,
               orderPosition: orderPosition,
               focusOnRider: true,
             ),
@@ -456,7 +449,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         height: 200,
         child: MapPage(
           mode: MapMode.route,
-          riderId: stateController.currentOrder.value.riderId,
+          riderId: stateController.currentOrder!.riderTelephone,
           orderPosition: orderPosition,
           focusOnRider: true,
         ),

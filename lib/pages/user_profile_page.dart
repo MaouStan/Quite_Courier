@@ -1,7 +1,16 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/controller/user_controller.dart';
-import 'dart:io'; // Add this import to handle File
+import 'package:quite_courier/models/auth_res.dart';
+import 'package:quite_courier/models/user_data.dart';
+import 'dart:io';
+
+import 'package:quite_courier/pages/map_page.dart';
+import 'package:quite_courier/services/auth_service.dart';
+import 'package:quite_courier/services/utils.dart'; // Add this import to handle File
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -11,10 +20,11 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  final UserController userProfileController2 = Get.find<UserController>();
+  final UserController userController = Get.find<UserController>();
   Map<String, TextEditingController>? controllers;
   bool isEditMode = false; // Track edit mode
   File? _selectedImage; // Temporary variable to hold selected image
+  LatLng? _selectedPosition;
 
   @override
   void initState() {
@@ -24,15 +34,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   void _initializeControllers() {
     controllers = {
-      'telephone': TextEditingController(
-          text: userProfileController2.userData.value.telephone),
-      'name': TextEditingController(
-          text: userProfileController2.userData.value.name),
+      'telephone':
+          TextEditingController(text: userController.userData.value.telephone),
+      'name': TextEditingController(text: userController.userData.value.name),
       'gpsMap': TextEditingController(
-          text: userProfileController2.userData.value.location.toString()),
+          text:
+              '${userController.userData.value.location.latitude}, ${userController.userData.value.location.longitude}'),
       'addressDescription': TextEditingController(
-          text: userProfileController2.userData.value.addressDescription),
+          text: userController.userData.value.addressDescription),
     };
+
+    log('UserData: ${userController.userData.value.toString()}');
   }
 
   @override
@@ -63,24 +75,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 5),
                     ),
-                    child: Obx(() {
-                      final imageUrl =
-                          userProfileController2.userData.value.profileImageUrl;
-                      return CircleAvatar(
+                    child: CircleAvatar(
                         radius: 80,
                         backgroundColor: Colors.grey[300],
                         backgroundImage: _selectedImage != null
                             ? FileImage(_selectedImage!) as ImageProvider
-                            : (imageUrl != null && imageUrl.isNotEmpty
-                                ? NetworkImage(imageUrl)
+                            : (userController.userData.value.profileImageUrl.isNotEmpty
+                                ? NetworkImage(userController.userData.value.profileImageUrl)
                                 : null),
-                        child: (_selectedImage == null &&
-                                (imageUrl == null || imageUrl.isEmpty))
+                        child: (_selectedImage == null && (userController.userData.value.profileImageUrl.isEmpty))
                             ? const Icon(Icons.person, size: 80)
                             : null,
-                      );
-                    }),
-                  ),
+                      ),
+                    ),
                   if (isEditMode)
                     Positioned(
                       bottom: 0,
@@ -132,20 +139,50 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                   const SizedBox(height: 10),
                   const Text('GPS Map'),
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Stack(
+                    children: [
+                      TextField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          fillColor: isEditMode
+                              ? Colors.white
+                              : const Color(0xFFECECEC),
+                          filled: true,
+                        ),
+                        style: TextStyle(
+                          color: isEditMode ? Colors.black : Colors.grey[700],
+                        ),
+                        controller: controllers!['gpsMap'],
                       ),
-                      fillColor:
-                          isEditMode ? Colors.white : const Color(0xFFECECEC),
-                      filled: true,
-                    ),
-                    style: TextStyle(
-                      color: isEditMode ? Colors.black : Colors.grey[700],
-                    ),
-                    controller: controllers!['gpsMap'],
-                    enabled: isEditMode,
+                      Positioned(
+                        right: 0,
+                        bottom: 5,
+                        child: IconButton(
+                          icon: Image.asset(
+                            'assets/images/google-maps.png',
+                            width: 32,
+                          ),
+                          onPressed: () async {
+                            LatLng? oldPostiion = _selectedPosition;
+                            _selectedPosition = await Get.to(() => MapPage(
+                                  mode: MapMode.select,
+                                  selectedPosition: oldPostiion,
+                                ));
+                            log('selectedPosition: $_selectedPosition');
+                            if (_selectedPosition != null) {
+                              controllers!['gpsMap']!.text =
+                                  '${_selectedPosition!.latitude}, ${_selectedPosition!.longitude}';
+                            } else {
+                              controllers!['gpsMap']!.text =
+                                  '${oldPostiion!.latitude}, ${oldPostiion.longitude}';
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 10),
                   const Text('Address Description'),
@@ -179,7 +216,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             setState(() {
                               isEditMode = false;
                               _selectedImage = null;
-                              userProfileController2.resetImageSelection();
                               _initializeControllers();
                             });
                           },
@@ -190,7 +226,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           ),
                         ),
                         ElevatedButton.icon(
-                          onPressed: updateProfile,
+                          onPressed: updateProfileUser,
                           icon: const Icon(Icons.save),
                           label: const Text('Update Profile'),
                         ),
@@ -215,17 +251,48 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  void updateProfile() async {
-    if (_selectedImage != null) {
-      await userProfileController2.uploadSelectedImage(_selectedImage!);
+  void updateProfileUser() async {
+    // loading
+    Get.dialog(const Center(child: CircularProgressIndicator()));
+
+    try {
+      log('selectedImage: $_selectedImage');
+      UserData profileUpdateReq = userController.userData.value;
+      profileUpdateReq.name = controllers!['name']!.text;
+
+      profileUpdateReq.addressDescription =
+          controllers!['addressDescription']!.text;
+      profileUpdateReq.location = LatLng(
+        double.parse(controllers!['gpsMap']!.text.split(',')[0]),
+        double.parse(controllers!['gpsMap']!.text.split(',')[1]),
+      );
+
+      AuthService authService = AuthService();
+      AuthResponse response = await authService.updateProfileUser(
+        profileUpdateReq,
+        _selectedImage,
+      );
+
+      Get.back();
+      Get.closeAllSnackbars();
+      if (response.success) {
+        Get.snackbar('Success', response.message);
+      } else {
+        Get.snackbar('Error', response.message);
+      }
+      setState(() {
+        isEditMode = false;
+        _selectedImage = null;
+      });
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+      Get.back();
     }
-    setState(() {
-      isEditMode = false;
-      _selectedImage = null;
-    });
   }
 
   void _showProfilePhotoMenu(BuildContext context) {
+    Utils utils = Utils();
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -236,7 +303,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               title: const Text('Take Photo'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await userProfileController2.takePhoto();
+                File? selected = await utils.takePhoto();
                 if (selected != null) {
                   setState(() {
                     _selectedImage = selected;
@@ -249,7 +316,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               title: const Text('Pick Image'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await userProfileController2.pickImage();
+                File? selected = await utils.pickImage();
                 if (selected != null) {
                   setState(() {
                     _selectedImage = selected;

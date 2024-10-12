@@ -2,13 +2,15 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
+import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/widget/status.dart';
 
 class OrderDetailContent extends StatelessWidget {
   final UserType userType;
 
-  final Map<String, dynamic> order;
+  final OrderDataRes order;
   final int currentStep;
 
   const OrderDetailContent({
@@ -20,6 +22,8 @@ class OrderDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userController = Get.find<UserController>();
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -45,11 +49,11 @@ class OrderDetailContent extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-              if (order['recipient'] != null) ...[
-                const SizedBox(height: 8),
-                _buildRiderContainers(),
-                const SizedBox(height: 20),
-              ],
+              // if (order['recipient'] != null) ...[
+              //   const SizedBox(height: 8),
+              //   _buildRiderContainers(),
+              //   const SizedBox(height: 20),
+              // ],
               const Divider(
                   color: Colors.black, thickness: 1, indent: 16, endIndent: 16),
               _buildRiderDetails(),
@@ -65,7 +69,7 @@ class OrderDetailContent extends StatelessWidget {
                 ),
               ),
               Text(
-                order['name'],
+                order.nameOrder,
                 style: TextStyle(
                   fontSize: Get.textTheme.titleLarge!.fontSize,
                   color: const Color(0xFF202442),
@@ -74,12 +78,13 @@ class OrderDetailContent extends StatelessWidget {
               const SizedBox(height: 8),
               _buildDeliveryImage(),
               const SizedBox(height: 12),
-              Text(order['description'],
+              Text(order.description,
                   style:
                       TextStyle(fontSize: Get.textTheme.bodyMedium!.fontSize)),
               const SizedBox(height: 20.0),
               Text(
-                order['recipient'] != null
+                order.receiverTelephone !=
+                        userController.userData.value.telephone
                     ? 'รายละเอียดผู้รับ'
                     : 'รายละเอียดผู้จัดส่ง',
                 style: TextStyle(
@@ -169,19 +174,19 @@ class OrderDetailContent extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 30,
-            backgroundImage: NetworkImage('https://your-image-url.com'),
+            backgroundImage: NetworkImage(order.riderProfileImage!),
           ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ชื่อ : ${order['rider']}', style: _detailsTextStyle()),
+              Text('ชื่อ : ${order.riderName}', style: _detailsTextStyle()),
               const SizedBox(height: 4),
-              Text('เบอร์โทร : ${order['riderphone']}',
+              Text('เบอร์โทร : ${order.riderTelephone}',
                   style: _detailsTextStyle()),
-              Text('ทะเบียนรถ: ${order['vehicleRegistration']}',
+              Text('ทะเบียนรถ: ${order.riderVehicleRegistration}',
                   style: _detailsTextStyle()),
             ],
           ),
@@ -214,20 +219,20 @@ class OrderDetailContent extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 30,
-            backgroundImage: NetworkImage('https://your-image-url.com'),
+            backgroundImage: NetworkImage(order.receiverProfileImage!),
           ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Name : ${order['recipient'] ?? order['sender'] ?? 'ไม่พบข้อมูล'}',
+                'Name : ${order.receiverName}',
                 style: _detailsTextStyle(),
               ),
               const SizedBox(height: 4),
-              Text('เบอร์โทร : ${order['telephone']}',
+              Text('เบอร์โทร : ${order.receiverTelephone}',
                   style: _detailsTextStyle()),
             ],
           ),
@@ -242,20 +247,20 @@ class OrderDetailContent extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 30,
-            backgroundImage: NetworkImage('https://your-image-url.com'),
+            backgroundImage: NetworkImage(order.senderProfileImage!),
           ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Name : ${order['sender'] ?? 'ไม่พบข้อมูล'}',
+                'Name : ${order.senderName}',
                 style: _detailsTextStyle(),
               ),
               const SizedBox(height: 4),
-              Text('เบอร์โทร : ${order['sendertelephone']}',
+              Text('เบอร์โทร : ${order.senderTelephone}',
                   style: _detailsTextStyle()),
             ],
           ),
@@ -269,7 +274,7 @@ class OrderDetailContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       child: Center(
         child: Text(
-          order['addressDescription'] ?? 'ไม่พบข้อมูล',
+          order.receiverAddress,
           style: TextStyle(fontSize: Get.textTheme.bodyLarge!.fontSize),
         ),
       ),

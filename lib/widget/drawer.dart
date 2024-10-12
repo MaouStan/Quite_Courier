@@ -2,7 +2,12 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:quite_courier/controller/rider_controller.dart';
+import 'package:quite_courier/controller/user_controller.dart';
+import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/rider_history_page.dart';
+import 'package:quite_courier/pages/sender_list_view_page.dart';
+import 'package:quite_courier/pages/user_home_page.dart';
 import 'package:quite_courier/pages/user_profile_page.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/pages/rider_home_page.dart';
@@ -23,6 +28,8 @@ class MyDrawer extends StatelessWidget {
   }
 
   List<Widget> _buildRiderWidgets(BuildContext context) {
+    final riderController = Get.find<RiderController>();
+
     return [
       Container(
         padding: const EdgeInsets.only(top: 60.0, left: 20.0, bottom: 15),
@@ -30,10 +37,16 @@ class MyDrawer extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 45,
-              backgroundImage: AssetImage('assets/images/profile.png'),
-              child: Stack(
+              backgroundImage:
+                  riderController.riderData.value.profileImageUrl != null &&
+                          riderController
+                              .riderData.value.profileImageUrl!.isNotEmpty
+                      ? NetworkImage(
+                          riderController.riderData.value.profileImageUrl!)
+                      : const AssetImage('assets/images/profile.png'),
+              child: const Stack(
                 alignment: Alignment.bottomRight,
               ),
             ),
@@ -41,7 +54,7 @@ class MyDrawer extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  'Name',
+                  riderController.riderData.value.name,
                   style: TextStyle(
                       fontSize: Get.textTheme.titleLarge!.fontSize,
                       fontWeight: FontWeight.bold),
@@ -163,6 +176,8 @@ class MyDrawer extends StatelessWidget {
   }
 
   List<Widget> _buildUserWidgets(BuildContext context) {
+    final userController = Get.find<UserController>();
+
     return [
       Container(
         padding: const EdgeInsets.only(top: 60.0, left: 20.0, bottom: 15),
@@ -170,10 +185,13 @@ class MyDrawer extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 45,
-              backgroundImage: AssetImage('assets/images/profile.png'),
-              child: Stack(
+              backgroundImage: userController
+                      .userData.value.profileImageUrl.isNotEmpty
+                  ? NetworkImage(userController.userData.value.profileImageUrl)
+                  : const AssetImage('assets/images/profile.png'),
+              child: const Stack(
                 alignment: Alignment.bottomRight,
               ),
             ),
@@ -181,7 +199,7 @@ class MyDrawer extends StatelessWidget {
             Column(
               children: [
                 Text(
-                  'Name',
+                  userController.userData.value.name,
                   style: TextStyle(
                       fontSize: Get.textTheme.titleLarge!.fontSize,
                       fontWeight: FontWeight.bold),
@@ -212,10 +230,9 @@ class MyDrawer extends StatelessWidget {
           size: 40,
         ),
         onTap: () {
-          log('Dashboard');
+          Get.to(() => const UserHomePage(), transition: Transition.fade);
         },
       ),
-      const SizedBox(height: 10),
       const SizedBox(
         width: 280,
         child: Divider(
@@ -225,14 +242,29 @@ class MyDrawer extends StatelessWidget {
         ),
       ),
       ListTile(
-        title: Text("Orders",
+        title: Text("Sent History",
             style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize)),
-        leading: const Icon(Icons.list_alt_outlined, size: 40),
+        leading: const Icon(Icons.arrow_forward_ios_outlined, size: 40),
         onTap: () {
-          log('Orders');
+          Get.to(() => const SenderListViewPage(), transition: Transition.fade);
         },
       ),
-      const SizedBox(height: 10),
+      const SizedBox(
+        width: 280,
+        child: Divider(
+          height: 1,
+          thickness: 2,
+          color: Color(0xFF908E1C),
+        ),
+      ),
+      ListTile(
+        title: Text("Received History",
+            style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize)),
+        leading: const Icon(Icons.arrow_back_ios_outlined, size: 40),
+        onTap: () {
+          Get.to(() => const RecieverListViewPage(), transition: Transition.fade);
+        },
+      ),
       const SizedBox(
         width: 280,
         child: Divider(

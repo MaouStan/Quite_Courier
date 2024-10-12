@@ -1,5 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/interfaces/order_people.dart';
+import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/models/order_data_req.dart';
 import 'dart:async';
 
 import 'package:quite_courier/pages/role_page.dart';
@@ -25,6 +30,29 @@ class _LoadingPageState extends State<LoadingPage>
   @override
   void initState() {
     super.initState();
+
+    // FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+    // // Arrange
+    // final orderDataReq = OrderDataReq(
+    //   riderName: 'John Doe',
+    //   riderTelephone: '1234567890',
+    //   senderName: 'Alice',
+    //   senderTelephone: '0123456777',
+    //   receiverName: 'Bob',
+    //   receiverTelephone: '0123456789',
+    //   nameOrder: 'Test Order',
+    //   orderPhoto: 'https://example.com/photo.jpg',
+    //   riderOrderPhoto1: 'https://example.com/rider_photo1.jpg',
+    //   riderOrderPhoto2: 'https://example.com/rider_photo2.jpg',
+    //   description: 'Test description',
+    //   senderLocation: LatLng(13.7563, 100.5018),
+    //   receiverLocation: LatLng(13.7563, 100.5018),
+    //   senderAddress: '123 Sender St, Bangkok',
+    //   receiverAddress: '456 Receiver St, Bangkok',
+    //   state: OrderState.pending,
+    // );
+
+    // _fireStore.collection('orders').add(orderDataReq.toJson());
 
     // Initialize horizontal animation
     _horizontalController = AnimationController(
@@ -117,10 +145,8 @@ class _LoadingPageState extends State<LoadingPage>
                             const SizedBox(height: 30),
                             ElevatedButton(
                               onPressed: () {
-                                Get.to(
-                                  () => const SigninPage(),
-                                  transition: Transition.noTransition
-                                );
+                                Get.to(() => const SigninPage(),
+                                    transition: Transition.noTransition);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF8E97FD),

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
+import 'package:quite_courier/models/order_data_res.dart';
+import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/detail.dart';
 import 'package:quite_courier/widget/drawer.dart';
 
 class ReciverOrderDetail extends StatefulWidget {
-  final String orderId; // Define orderId as a required parameter.
+  final String orderId;
 
   const ReciverOrderDetail({required this.orderId, super.key});
 
@@ -16,18 +17,32 @@ class ReciverOrderDetail extends StatefulWidget {
 }
 
 class _ReciverOrderDetailState extends State<ReciverOrderDetail> {
-  final OrderController orderController = Get.find<OrderController>();
-
   @override
   Widget build(BuildContext context) {
-    final order = orderController.incomingPackages
-        .firstWhere((o) => o['id'] == widget.orderId);
-    int currentStep = order['status'].index; // กำหนดค่าเริ่มต้นตามที่คุณต้องการ
-
     return Scaffold(
       appBar: const CustomAppBar(),
       drawer: const MyDrawer(),
-      body: OrderDetailContent(order: order, currentStep: currentStep, userType: UserType.user,),
+      body: FutureBuilder<OrderDataRes?>(
+        future: OrderService.fetchOrderWithId(widget.orderId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('Order not found'));
+          }
+
+          final order = snapshot.data!;
+          int currentStep = order.state.index;
+
+          return OrderDetailContent(
+            order: order,
+            currentStep: currentStep,
+            userType: UserType.user,
+          );
+        },
+      ),
     );
   }
 }

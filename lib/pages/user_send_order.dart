@@ -33,14 +33,14 @@ class _UserSendOrderState extends State<UserSendOrder>
       telephone: '0912345678',
       addressDescription: '123 Main St, City',
       profileImageUrl: 'assets/images/avatar.png',
-      location: LatLng(13.7563, 100.5018),
+      location: const LatLng(13.7563, 100.5018),
     ),
     UserData(
       name: 'Jane Smith',
       telephone: '0923456789',
       addressDescription: '456 Elm St, City',
       profileImageUrl: 'assets/images/avatar.png',
-      location: LatLng(13.7563, 100.5018),
+      location: const LatLng(13.7563, 100.5018),
     ),
   ];
   List<UserData> _filteredUsers = [];

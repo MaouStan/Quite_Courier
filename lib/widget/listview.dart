@@ -3,67 +3,62 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
+import 'package:quite_courier/controller/rider_controller.dart';
+import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/reciver_order_detail.dart';
 import 'package:quite_courier/pages/sender_order_detail.dart';
+import 'package:quite_courier/services/order_service.dart';
 
 class OrderListView extends StatelessWidget {
   final bool useIncomingData;
-  final bool useCompleategData;
   final int? limit;
+  final List<OrderDataRes>? orders;
 
-  OrderListView(
-      {super.key,
-      this.useIncomingData = false,
-      this.useCompleategData = false,
-      this.limit});
+  OrderListView({super.key, this.useIncomingData = false, this.limit, this.orders});
 
   @override
   Widget build(BuildContext context) {
-    return GetX<OrderController>(
-      builder: (controller) {
-        final orders = _getOrders(controller);
+    return FutureBuilder<List<OrderDataRes>>(
+      future: orders != null ? Future.value(orders!) : _fetchOrders(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No orders available'));
+        }
+
+        final orders = snapshot.data!;
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: orders.length,
           itemBuilder: (context, index) {
             final order = orders[index];
-            return _buildOrderItem(order, controller);
+            return _buildOrderItem(order);
           },
         );
       },
     );
   }
 
-  List<Map<String, dynamic>> _getOrders(OrderController controller) {
-    List<Map<String, dynamic>> selectedOrders = List.from(
-      useIncomingData
-          ? (useCompleategData
-              ? controller.completedPackages
-              : controller.incomingPackages)
-          : controller.sampleOrders,
-    );
-
-    selectedOrders.sort((a, b) =>
-        (b['sentDate'] as DateTime).compareTo(a['sentDate'] as DateTime));
-
-    if (limit != null && limit! > 0 && limit! < selectedOrders.length) {
-      return selectedOrders.take(limit!).toList();
-    }
-
-    return selectedOrders;
+  Future<List<OrderDataRes>> _fetchOrders() async {
+    var riderController = Get.find<RiderController>();
+    return await OrderService.fetchOrderWithRiderAndState(
+        riderController.riderData.value.telephone, OrderState.completed);
   }
 
-  Widget _buildOrderItem(
-      Map<String, dynamic> order, OrderController controller) {
+  Widget _buildOrderItem(OrderDataRes order) {
     return InkWell(
       onTap: useIncomingData
           ? () {
-              Get.to(() => ReciverOrderDetail(orderId: order['id']));
+              Get.to(() => ReciverOrderDetail(orderId: order.documentId));
             }
           : () {
-              log(order['id']);
-              Get.to(() => SenderOrderDetail(orderId: order['id']));
+              log(order.documentId.toString());
+              Get.to(() => SenderOrderDetail(orderId: order.documentId));
             },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -78,7 +73,7 @@ class OrderListView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(order['name'],
+              Text(order.nameOrder,
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
@@ -90,19 +85,19 @@ class OrderListView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(useIncomingData
-                          ? 'ผู้ส่ง : ${order['sender']}'
-                          : 'ผู้รับ : ${order['recipient']}'),
+                          ? 'ผู้ส่ง : ${order.senderName}'
+                          : 'ผู้รับ : ${order.receiverName}'),
                       Text(
-                          'ส่งเมื่อวันที่ : ${(order['sentDate'] as DateTime).toString().split(' ')[0]}'),
+                          'ส่งเมื่อวันที่ : ${order.createdAt.toString().split(' ')[0]}'),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              _buildTimeline(order['status'] as OrderStatus),
+              _buildTimeline(order.state),
               const SizedBox(height: 8),
               Text(
-                  'สถานะ: ${_timelineLabels[OrderStatus.values.indexOf(order['status'] as OrderStatus)]}'),
+                  'สถานะ: ${_timelineLabels[OrderState.values.indexOf(order.state)]}'),
             ],
           ),
         ),
@@ -118,8 +113,8 @@ class OrderListView extends StatelessWidget {
     'จัดส่งแล้ว'
   ];
 
-  Widget _buildTimeline(OrderStatus status) {
-    final currentIndex = OrderStatus.values.indexOf(status);
+  Widget _buildTimeline(OrderState state) {
+    final currentIndex = OrderState.values.indexOf(state);
 
     return Row(
       children: List.generate(_timelineLabels.length * 2 - 1, (index) {
