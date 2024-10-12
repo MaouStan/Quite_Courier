@@ -86,16 +86,16 @@ class _CustomAppBarState extends State<CustomAppBar> {
           ],
         ),
         centerTitle: true,
-        actions: widget.userType == UserType.user
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined, size: 40),
-                  onPressed: () {
-                    // Handle notification action
-                  },
-                ),
-              ]
-            : [],
+        // actions: widget.userType == UserType.user
+        //     ? [
+        //         IconButton(
+        //           icon: const Icon(Icons.notifications_outlined, size: 40),
+        //           onPressed: () {
+        //             // Handle notification action
+        //           },
+        //         ),
+        //       ]
+        //     : [],
       ),
     );
   }

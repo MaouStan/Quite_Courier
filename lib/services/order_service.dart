@@ -64,11 +64,14 @@ class OrderService {
 
       // fetch profile image getImageUrl with riderTelephone, senderTelephone, receiverTelephone
       order.riderProfileImage = await FirebaseService()
-          .getImageUrl('/profile_images/${order.riderTelephone}');
+          .getImageUrl('/profile_images/${order.riderTelephone}')
+          .catchError((error) => null) ?? '';
       order.senderProfileImage = await FirebaseService()
-          .getImageUrl('/profile_images/${order.senderTelephone}');
+          .getImageUrl('/profile_images/${order.senderTelephone}')
+          .catchError((error) => null) ?? '';
       order.receiverProfileImage = await FirebaseService()
-          .getImageUrl('/profile_images/${order.receiverTelephone}');
+          .getImageUrl('/profile_images/${order.receiverTelephone}')
+          .catchError((error) => null) ?? '';
 
       return order;
     } catch (e) {

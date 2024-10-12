@@ -7,6 +7,7 @@ import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/rider_history_page.dart';
 import 'package:quite_courier/pages/sender_list_view_page.dart';
+import 'package:quite_courier/pages/signin_page.dart';
 import 'package:quite_courier/pages/user_home_page.dart';
 import 'package:quite_courier/pages/user_profile_page.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
@@ -262,7 +263,8 @@ class MyDrawer extends StatelessWidget {
             style: TextStyle(fontSize: Get.textTheme.titleLarge!.fontSize)),
         leading: const Icon(Icons.arrow_back_ios_outlined, size: 40),
         onTap: () {
-          Get.to(() => const RecieverListViewPage(), transition: Transition.fade);
+          Get.to(() => const RecieverListViewPage(),
+              transition: Transition.fade);
         },
       ),
       const SizedBox(
@@ -305,7 +307,8 @@ class MyDrawer extends StatelessWidget {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.popUntil(context, (route) => route.isFirst);
+                        Get.offAll(() => const SigninPage(),
+                            transition: Transition.fade);
                       },
                       child: const Text('Logout'),
                     ),

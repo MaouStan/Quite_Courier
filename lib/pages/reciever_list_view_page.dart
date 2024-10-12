@@ -21,8 +21,7 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
 
   Future<List<OrderDataRes>> fetchReceivedOrders() async {
     try {
-      final orders = await OrderService.getOrdersByReceiver(
-          userController.userData.value.telephone);
+      final orders = await OrderService.getOrdersByReceiver(userController.userData.value.telephone);
       return orders;
     } catch (e) {
       print('Error fetching received orders: $e');
