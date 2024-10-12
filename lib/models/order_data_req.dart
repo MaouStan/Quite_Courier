@@ -10,6 +10,7 @@ class OrderDataReq {
   String senderTelephone;
   String receiverName;
   String receiverTelephone;
+  String riderVehicleRegistration;
   String nameOrder;
   String orderPhoto;
   String riderOrderPhoto1;
@@ -20,9 +21,10 @@ class OrderDataReq {
   String senderAddress;
   String receiverAddress;
   OrderState state;
-  DateTime createdAt = DateTime.now();
+  DateTime createdAt;
 
   OrderDataReq({
+    required this.riderVehicleRegistration,
     required this.riderName,
     required this.riderTelephone,
     required this.senderName,
@@ -39,6 +41,7 @@ class OrderDataReq {
     required this.senderAddress,
     required this.receiverAddress,
     required this.state,
+    required this.createdAt,
   });
 
   @override
@@ -53,6 +56,7 @@ class OrderDataReq {
         'senderTelephone': senderTelephone,
         'receiverName': receiverName,
         'receiverTelephone': receiverTelephone,
+        'riderVehicleRegistration': riderVehicleRegistration,
         'nameOrder': nameOrder,
         'orderPhoto': orderPhoto,
         'riderOrderPhoto1': riderOrderPhoto1,

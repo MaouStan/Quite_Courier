@@ -23,7 +23,7 @@ class OrderDataRes {
   String senderAddress;
   String receiverAddress;
   OrderState state;
-  DateTime createdAt = DateTime.now();
+  DateTime createdAt;
 
   OrderDataRes({
     required this.documentId, // Added to constructor
@@ -47,6 +47,7 @@ class OrderDataRes {
     this.riderProfileImage,
     this.senderProfileImage,
     this.receiverProfileImage,
+    required this.createdAt,
   });
 
   @override
@@ -82,30 +83,32 @@ class OrderDataRes {
         'createdAt': createdAt.toIso8601String(),
       };
 
-  static OrderDataRes fromJson(Map<String, dynamic> json, String docId) => OrderDataRes(
-    documentId: docId,
-    riderName: json['riderName'],
-    riderTelephone: json['riderTelephone'],
-    senderName: json['senderName'],
-    senderTelephone: json['senderTelephone'],
-    riderVehicleRegistration: json['riderVehicleRegistration'],
-    receiverName: json['receiverName'],
-    receiverTelephone: json['receiverTelephone'],
-    nameOrder: json['nameOrder'],
-    orderPhoto: json['orderPhoto'],
-    riderOrderPhoto1: json['riderOrderPhoto1'],
-    riderOrderPhoto2: json['riderOrderPhoto2'],
-    description: json['description'],
-    senderAddress: json['senderAddress'],
-    receiverAddress: json['receiverAddress'],
-    state: OrderState.fromJson(json['state']),
-    senderLocation: LatLng(
-      json['senderLocation']?['latitude'] ?? 0.0,
-      json['senderLocation']?['longitude'] ?? 0.0,
-    ),
-    receiverLocation: LatLng(
-      json['receiverLocation']?['latitude'] ?? 0.0,
-      json['receiverLocation']?['longitude'] ?? 0.0,
-    ),
-  );
+  static OrderDataRes fromJson(Map<String, dynamic> json, String docId) =>
+      OrderDataRes(
+        documentId: docId,
+        riderName: json['riderName'],
+        riderTelephone: json['riderTelephone'],
+        senderName: json['senderName'],
+        senderTelephone: json['senderTelephone'],
+        riderVehicleRegistration: json['riderVehicleRegistration'],
+        receiverName: json['receiverName'],
+        receiverTelephone: json['receiverTelephone'],
+        nameOrder: json['nameOrder'],
+        orderPhoto: json['orderPhoto'],
+        riderOrderPhoto1: json['riderOrderPhoto1'],
+        riderOrderPhoto2: json['riderOrderPhoto2'],
+        description: json['description'],
+        senderAddress: json['senderAddress'],
+        receiverAddress: json['receiverAddress'],
+        state: OrderState.fromJson(json['state']),
+        senderLocation: LatLng(
+          json['senderLocation']?['latitude'] ?? 0.0,
+          json['senderLocation']?['longitude'] ?? 0.0,
+        ),
+        receiverLocation: LatLng(
+          json['receiverLocation']?['latitude'] ?? 0.0,
+          json['receiverLocation']?['longitude'] ?? 0.0,
+        ),
+        createdAt: DateTime.parse(json['createdAt']),
+      );
 }

@@ -30,13 +30,13 @@ class OrderListView extends StatelessWidget {
           return const Center(child: Text('No orders available'));
         }
 
-        final orders = snapshot.data!;
+        final displayedOrders = limit != null ? snapshot.data!.take(limit!).toList() : snapshot.data!;
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: orders.length,
+          itemCount: displayedOrders.length,
           itemBuilder: (context, index) {
-            final order = orders[index];
+            final order = displayedOrders[index];
             return _buildOrderItem(order);
           },
         );
@@ -77,18 +77,20 @@ class OrderListView extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
-                  Image.asset(
-                    'assets/images/logo.png',
+                  Image.network(
+                    order.orderPhoto,
                     width: 120,
+                    height: 80,
+                    fit: BoxFit.cover,
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(useIncomingData
-                          ? 'ผู้ส่ง : ${order.senderName}'
-                          : 'ผู้รับ : ${order.receiverName}'),
+                          ? '  ผู้ส่ง : ${order.senderName}'
+                          : '  ผู้รับ : ${order.receiverName}'),
                       Text(
-                          'ส่งเมื่อวันที่ : ${order.createdAt.toString().split(' ')[0]}'),
+                          '  ส่งเมื่อวันที่ : ${order.createdAt.toString().split(' ')[0]}'),
                     ],
                   ),
                 ],

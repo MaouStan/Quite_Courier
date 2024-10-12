@@ -1,12 +1,18 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/models/order_data_req.dart';
 import 'package:quite_courier/models/user_data.dart';
 import 'package:quite_courier/pages/map_page.dart';
+import 'package:quite_courier/pages/user_home_page.dart';
+import 'package:quite_courier/services/order_service.dart';
+import 'package:quite_courier/models/order_data_res.dart';
+import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/services/auth_service.dart';
+import 'package:quite_courier/controller/user_controller.dart';
 
 class UserSendOrder extends StatefulWidget {
   const UserSendOrder({super.key});
@@ -27,22 +33,7 @@ class _UserSendOrderState extends State<UserSendOrder>
     Tab(text: 'Address'),
   ];
   final TextEditingController _searchController = TextEditingController();
-  final List<UserData> _users = [
-    UserData(
-      name: 'John Doe',
-      telephone: '0912345678',
-      addressDescription: '123 Main St, City',
-      profileImageUrl: 'assets/images/avatar.png',
-      location: const LatLng(13.7563, 100.5018),
-    ),
-    UserData(
-      name: 'Jane Smith',
-      telephone: '0923456789',
-      addressDescription: '456 Elm St, City',
-      profileImageUrl: 'assets/images/avatar.png',
-      location: const LatLng(13.7563, 100.5018),
-    ),
-  ];
+  final List<UserData> _users = [];
   List<UserData> _filteredUsers = [];
   int? _selectedUserIndex;
   // Item Controllers
@@ -59,28 +50,56 @@ class _UserSendOrderState extends State<UserSendOrder>
     'gpsMap': TextEditingController(), // Add this line to initialize gpsMap
   };
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _filteredUsers = _users;
     _searchController.addListener(_filterUsers);
+    _fetchOtherUsers();
+  }
+
+  Future<void> _fetchOtherUsers() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final UserController userController = Get.find<UserController>();
+    final AuthService authService = AuthService();
+
+    try {
+      final otherUsers = await authService
+          .fetchOtherUsers(userController.userData.value.telephone);
+      setState(() {
+        _users.addAll(otherUsers);
+        _filteredUsers = otherUsers;
+        _isLoading = false;
+      });
+    } catch (e) {
+      log('Error fetching other users: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _filterUsers() {
-    // final query = _searchController.text;
-    // setState(() {
-    //   _filteredUsers = _users.where((user) {
-    //     return user.telephone.contains(query);
-    //   }).toList();
-    // });
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredUsers = _users.where((user) {
+        return user.telephone.contains(query) ||
+            user.name.toLowerCase().contains(query);
+      }).toList();
+    });
   }
 
   void _loadReceiverData(UserData user) {
-    // receiverControllers['name']!.text = user.name;
-    // receiverControllers['telephone']!.text = user.telephone;
-    // receiverControllers['addressDescription']!.text = user.addressDescription;
-    // receiverControllers['gpsMap']!.text = user.gpsMap;
+    receiverControllers['name']!.text = user.name;
+    receiverControllers['telephone']!.text = user.telephone;
+    receiverControllers['addressDescription']!.text = user.addressDescription;
+    receiverControllers['gpsMap']!.text =
+        '${user.location.latitude}, ${user.location.longitude}';
   }
 
   Future<void> _showImagePickerMenu(BuildContext context) async {
@@ -140,12 +159,6 @@ class _UserSendOrderState extends State<UserSendOrder>
   }
 
   bool _isItemDetailsComplete() {
-    // image is not null
-    // name is not empty
-    // description is not empty
-    dev.log('image: ${_selectedImage != null}');
-    dev.log('name: ${itemControllers['name']!.text.isNotEmpty}');
-    dev.log('description: ${itemControllers['description']!.text.isNotEmpty}');
     return _selectedImage != null &&
         itemControllers['name']!.text.isNotEmpty &&
         itemControllers['description']!.text.isNotEmpty;
@@ -153,6 +166,13 @@ class _UserSendOrderState extends State<UserSendOrder>
 
   bool _isReceiverSelected() {
     return _selectedUserIndex != null;
+  }
+
+  bool _isAddressComplete() {
+    return receiverControllers['name']!.text.isNotEmpty &&
+        receiverControllers['telephone']!.text.isNotEmpty &&
+        receiverControllers['gpsMap']!.text.isNotEmpty &&
+        receiverControllers['addressDescription']!.text.isNotEmpty;
   }
 
   @override
@@ -271,7 +291,7 @@ class _UserSendOrderState extends State<UserSendOrder>
               contentPadding: const EdgeInsets.all(20.0),
             ),
           ),
-          const SizedBox(height: 200),
+          const SizedBox(height: 100),
           Center(
             child: Container(
               decoration: BoxDecoration(
@@ -334,56 +354,62 @@ class _UserSendOrderState extends State<UserSendOrder>
               suffixIcon: IconButton(
                 icon: const Icon(Icons.search_outlined),
                 onPressed: () {
-                  log('search');
+                  _filterUsers();
                 },
               ),
             ),
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: ListView.builder(
-              itemCount: _filteredUsers.length,
-              itemBuilder: (context, index) {
-                final user = _filteredUsers[index];
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedUserIndex = index;
-                      _loadReceiverData(user);
-                    });
-                  },
-                  child: Card(
-                    color:
-                        _selectedUserIndex == index ? Colors.amber[100] : null,
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: NetworkImage(user.profileImageUrl),
-                      ),
-                      title: Text('ชื่อ : ${user.name}',
-                          style: TextStyle(
-                              fontSize: Get.textTheme.bodyLarge!.fontSize,
-                              fontWeight: FontWeight.bold)),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              'เบอร์โทร : ${user.telephone.substring(0, 3)}-${user.telephone.substring(3, 6)}-${user.telephone.substring(6)}',
-                              style: TextStyle(
-                                  fontSize: Get.textTheme.bodyLarge!.fontSize,
-                                  fontWeight: FontWeight.bold)),
-                          Text('ที่อยู่ :  ${user.addressDescription}',
-                              style: TextStyle(
-                                  fontSize: Get.textTheme.bodyLarge!.fontSize,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _filteredUsers.length,
+                    itemBuilder: (context, index) {
+                      final user = _filteredUsers[index];
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedUserIndex = index;
+                            _loadReceiverData(user);
+                          });
+                        },
+                        child: Card(
+                          color: _selectedUserIndex == index
+                              ? Colors.amber[100]
+                              : null,
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              radius: 30,
+                              backgroundImage:
+                                  NetworkImage(user.profileImageUrl),
+                            ),
+                            title: Text('ชื่อ : ${user.name}',
+                                style: TextStyle(
+                                    fontSize: Get.textTheme.bodyLarge!.fontSize,
+                                    fontWeight: FontWeight.bold)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'เบอร์โทร : ${user.telephone.substring(0, 3)}-${user.telephone.substring(3, 6)}-${user.telephone.substring(6)}',
+                                    style: TextStyle(
+                                        fontSize:
+                                            Get.textTheme.bodyLarge!.fontSize,
+                                        fontWeight: FontWeight.bold)),
+                                Text('ที่อยู่ :  ${user.addressDescription}',
+                                    style: TextStyle(
+                                        fontSize:
+                                            Get.textTheme.bodyLarge!.fontSize,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           // const SizedBox(height: 20),
           const Spacer(), // เพิ่ม Spacer เพื่อให้ปุ่มอยู่ด้านล่าง
@@ -461,12 +487,18 @@ class _UserSendOrderState extends State<UserSendOrder>
   }
 
   Future<void> _selectPosition() async {
-    final LatLng? selectedPosition = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const MapPage(mode: MapMode.select),
-      ),
-    );
+    log('selectPosition');
+    final LatLng? selectedPosition = await Get.to(() => MapPage(
+          mode: MapMode.select,
+          selectedPosition: receiverControllers['gpsMap']!.text.isEmpty
+              ? const LatLng(0, 0)
+              : LatLng(
+                  double.parse(
+                      receiverControllers['gpsMap']!.text.split(',')[0]),
+                  double.parse(
+                      receiverControllers['gpsMap']!.text.split(',')[1]),
+                ),
+        ));
 
     if (selectedPosition != null) {
       setState(() {
@@ -530,27 +562,44 @@ class _UserSendOrderState extends State<UserSendOrder>
                 fontSize: Get.textTheme.titleMedium!.fontSize,
               ),
             ),
-            TextField(
-              enabled: true,
-              controller: receiverControllers['gpsMap']!,
-              decoration: InputDecoration(
-                hintText: 'Longtitude 90.0 , Latitude 999',
-                hintStyle: TextStyle(color: Colors.grey.shade400),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                suffixIcon: IconButton(
-                  icon: Image.asset(
-                    'assets/images/google-maps.png',
-                    width: 32,
+            Stack(
+              children: [
+                TextField(
+                  enabled: false,
+                  style: const TextStyle(color: Colors.black),
+                  controller: receiverControllers['gpsMap']!,
+                  decoration: InputDecoration(
+                    hintText: 'Longtitude 90.0 , Latitude 999',
+                    hintStyle: TextStyle(color: Colors.grey.shade400),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    // suffixIcon: IconButton(
+                    //   icon: Image.asset(
+                    //     'assets/images/google-maps.png',
+                    //     width: 32,
+                    //   ),
+                    //   onPressed: () {
+                    //     _selectPosition;
+                    //   },
+                    //   ),
                   ),
-                  onPressed: () {
-                    _selectPosition;
-                  },
                 ),
-              ),
+                Positioned(
+                  right: 10,
+                  top: 2,
+                  child: IconButton(
+                    icon: Image.asset(
+                      'assets/images/google-maps.png',
+                      width: 32,
+                      height: 32,
+                    ),
+                    onPressed: _selectPosition,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             Text(
@@ -576,7 +625,7 @@ class _UserSendOrderState extends State<UserSendOrder>
                     vertical: 20.0, horizontal: 10.0),
               ),
             ),
-            const SizedBox(height: 270),
+            const SizedBox(height: 155),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -650,20 +699,73 @@ class _UserSendOrderState extends State<UserSendOrder>
   }
 
   void _showConfirmationDialog() {
+    if (!_isItemDetailsComplete() || !_isAddressComplete()) {
+      Get.snackbar('Error', 'Please fill in all required fields');
+      return;
+    }
+
     Get.defaultDialog(
       title: "Confirm",
       middleText: "Are you sure you want to send?",
       onConfirm: () {
-        // เพิ่มลอจิกในการส่งข้อมูลที่นี่
-        Get.back(); // ปิด dialog
+        Get.back(); // Close dialog
+        _sendOrder();
       },
       onCancel: () {
-        Get.back(); // ปิด dialog
+        Get.back(); // Close dialog
       },
       confirmTextColor: Colors.white,
       textConfirm: "Yes",
       textCancel: "No",
       buttonColor: Colors.green,
     );
+  }
+
+  void _sendOrder() async {
+    Get.closeAllSnackbars();
+    Get.dialog(const Center(child: CircularProgressIndicator()));
+
+    try {
+      final userController = Get.find<UserController>();
+      final latLng = receiverControllers['gpsMap']!.text.split(',');
+      final latitude = double.parse(latLng[0].trim());
+      final longitude = double.parse(latLng[1].trim());
+
+      final newOrder = OrderDataReq(
+        riderName: '', // This will be set when a rider accepts the order
+        riderTelephone: '', // This will be set when a rider accepts the order
+        riderVehicleRegistration:
+            '', // This will be set when a rider accepts the order
+        senderName: userController
+            .userData.value.name, // Replace with actual sender name
+        senderTelephone: userController
+            .userData.value.telephone, // Replace with actual sender phone
+        receiverName: receiverControllers['name']!.text,
+        receiverTelephone: receiverControllers['telephone']!.text,
+        nameOrder: itemControllers['name']!.text,
+        orderPhoto: '', // This needs to be uploaded and URL stored
+        riderOrderPhoto1: '',
+        riderOrderPhoto2: '',
+        description: itemControllers['description']!.text,
+        senderLocation: userController.userData.value.location,
+        receiverLocation: LatLng(latitude, longitude),
+        senderAddress: userController.userData.value.addressDescription,
+        receiverAddress: receiverControllers['addressDescription']!.text,
+        state: OrderState.pending,
+        createdAt: DateTime.now(),
+      );
+
+      bool success = await OrderService.createOrder(newOrder, _selectedImage!);
+      if (success) {
+        Get.snackbar('Success', 'Order sent successfully');
+        // back to home page
+        Get.offAll(() => const UserHomePage());
+      } else {
+        Get.snackbar('Error', 'Failed to send order. Please try again.');
+      }
+    } catch (e) {
+      log('Error sending order: $e');
+      Get.snackbar('Error', 'Failed to send order. Please try again.');
+    }
   }
 }

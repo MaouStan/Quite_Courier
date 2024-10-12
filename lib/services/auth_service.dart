@@ -168,4 +168,32 @@ class AuthService {
           success: false, message: 'Failed to update profile: ${e.toString()}');
     }
   }
+
+  Future<List<UserData>> fetchOtherUsers(String currentUserTelephone) async {
+    try {
+      QuerySnapshot userDocs = await _firestore
+          .collection('users')
+          .where('telephone', isNotEqualTo: currentUserTelephone)
+          .get();
+
+      dev.log('userDocs: ${userDocs.docs.length}');
+
+      return userDocs.docs.map((doc) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return UserData(
+          profileImageUrl: data['profileImageUrl'] ?? '',
+          telephone: data['telephone'] ?? '',
+          name: data['name'] ?? '',
+          location: LatLng(
+            data['location']['latitude'] ?? 0.0,
+            data['location']['longitude'] ?? 0.0,
+          ),
+          addressDescription: data['addressDescription'] ?? '',
+        );
+      }).toList();
+    } catch (e) {
+      dev.log('Error fetching other users: $e');
+      return [];
+    }
+  }
 }

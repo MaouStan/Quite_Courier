@@ -23,8 +23,9 @@ class UserHomePage extends StatefulWidget {
 }
 
 class _UserHomePageState extends State<UserHomePage> {
-  final OrderController orderController = Get.find<OrderController>();
+  // final OrderController orderController = Get.find<OrderController>();
   final UserController userController = Get.find<UserController>();
+  final int orderLimit = 3; // Set the limit for displayed orders
 
   Future<Map<String, List<OrderDataRes>>> fetchOrders() async {
     try {
@@ -100,7 +101,8 @@ class _UserHomePageState extends State<UserHomePage> {
     );
   }
 
-  Widget _buildUserInfoCard(List<OrderDataRes> sentOrders, List<OrderDataRes> receivedOrders) {
+  Widget _buildUserInfoCard(
+      List<OrderDataRes> sentOrders, List<OrderDataRes> receivedOrders) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF0EAE2),
@@ -113,14 +115,14 @@ class _UserHomePageState extends State<UserHomePage> {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundImage: NetworkImage(
-                    userController.userData.value.profileImageUrl),
+                backgroundImage:
+                    NetworkImage(userController.userData.value.profileImageUrl),
               ),
               const SizedBox(width: 12),
               Text(
                 userController.userData.value.name,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -128,12 +130,15 @@ class _UserHomePageState extends State<UserHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('จัดส่งแล้ว', sentOrders.length),
+              _buildStatItem(
+                  'จัดส่งแล้ว',
+                  sentOrders
+                      .where((order) => order.state == OrderState.completed)
+                      .length),
               _buildStatItem(
                   'กำลังส่ง',
                   sentOrders
-                      .where((order) =>
-                          order.state != OrderState.pending)
+                      .where((order) => order.state != OrderState.completed)
                       .length),
             ],
           ),
@@ -142,12 +147,14 @@ class _UserHomePageState extends State<UserHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStatItem(
-                  'รับของแล้ว', receivedOrders.length),
+                  'รับของแล้ว',
+                  receivedOrders
+                      .where((order) => order.state == OrderState.completed)
+                      .length),
               _buildStatItem(
                   'ของกำลังมาส่ง',
                   receivedOrders
-                      .where((order) =>
-                          order.state != OrderState.pending)
+                      .where((order) => order.state != OrderState.completed)
                       .length),
             ],
           ),
@@ -178,7 +185,7 @@ class _UserHomePageState extends State<UserHomePage> {
                         color: Colors.black)))
           ],
         ),
-        OrderListView(useIncomingData: false, orders: sentOrders, limit: 3),
+        OrderListView(useIncomingData: false, orders: sentOrders, limit: orderLimit),
       ],
     );
   }
@@ -205,7 +212,7 @@ class _UserHomePageState extends State<UserHomePage> {
                         color: Colors.black)))
           ],
         ),
-        OrderListView(useIncomingData: true, orders: receivedOrders, limit: 3),
+        OrderListView(useIncomingData: true, orders: receivedOrders, limit: orderLimit),
       ],
     );
   }
