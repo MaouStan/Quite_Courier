@@ -32,25 +32,6 @@ class RiderController extends GetxController {
   // ignore: unused_field
   File? _tempVehicleImage; // Temporary storage for vehicle image
 
-  // {{ edit_3 }} Choose image without uploading
-  Future<File?> takePhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      return File(pickedFile.path);
-    }
-    return null;
-  }
-
-  Future<File?> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      return File(pickedFile.path);
-    }
-    return null;
-  }
-
   // {{ edit_4 }} Upload the selected image upon confirmation
   Future<void> uploadSelectedImage(File imageFile,
       {bool isProfileImage = true}) async {
@@ -89,55 +70,4 @@ class RiderController extends GetxController {
       print('Error uploading image: $e');
     }
   }
-
-  // {{ edit_5 }} Reset temporary image selection
-  void resetImageSelection() {
-    _tempProfileImage = null;
-    _tempVehicleImage = null;
-  }
-
-  // {{ edit_6 }} Initialize rider data from Firestore or other source
-  @override
-  void onInit() {
-    super.onInit();
-    fetchRiderData();
-  }
-
-  Future<void> fetchRiderData() async {
-    return;
-    // ignore: dead_code
-    try {
-      // Replace with your Firestore collection and document structure
-      String telephone = 'user_telephone'; // Replace with actual telephone
-      DocumentSnapshot doc = await FirebaseFirestore.instance
-          .collection('riders')
-          .doc(telephone)
-          .get();
-
-      if (doc.exists) {
-        riderData.value = RiderData(
-          profileImageUrl: doc['profileImageUrl'] ?? '',
-          location: LatLng(doc['location']['latitude'],
-              doc['location']['longitude']),
-          telephone: doc['telephone'] ?? '',
-          name: doc['name'] ?? '',
-          vehicleImage: doc['vehicleImage'] ?? '',
-          vehicleRegistration: doc['vehicleRegistration'] ?? '',
-        );
-      }
-    } catch (e) {
-      print('Error fetching rider data: $e');
-    }
-  }
-
-  // {{ edit_7 }} Methods to switch order states
-  void switchToSendingOrder() {
-    currentState.value = RiderOrderState.sendingOrder;
-  }
-
-  void switchToWaitGetOrder() {
-    currentState.value = RiderOrderState.waitGetOrder;
-  }
-
-  // ... Add other necessary methods, such as updating rider information
 }

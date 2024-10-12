@@ -74,10 +74,10 @@ class _UserHomePageState extends State<UserHomePage> {
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    _buildUserInfoCard(sentOrders, receivedOrders),
+                    _buildUserInfoCard(sentOrders.where((order) => order.state != OrderState.completed).toList(), receivedOrders.where((order) => order.state != OrderState.completed).toList()),
                     const SizedBox(height: 12),
-                    _buildSentOrdersSection(sentOrders),
-                    _buildReceivedOrdersSection(receivedOrders),
+                    _buildSentOrdersSection(sentOrders.where((order) => order.state != OrderState.completed).toList()),
+                    _buildReceivedOrdersSection(receivedOrders.where((order) => order.state != OrderState.completed).toList()),
                   ],
                 ),
               ),

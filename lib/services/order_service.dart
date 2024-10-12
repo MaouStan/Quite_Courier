@@ -188,4 +188,29 @@ class OrderService {
       throw e;
     }
   }
+
+  static Future<bool> updateOrder(OrderDataRes order, {File? image1, File? image2}) async {
+    try {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      Map<String, dynamic> updateData = order.toJson();
+
+      if (image1 != null || image2 != null) {
+        String? imageUrl1, imageUrl2;
+        if (image1 != null) {
+          imageUrl1 = await FirebaseService().uploadImage(image1, 'order_images/${order.documentId}/2');
+          if (imageUrl1 != null) updateData['riderOrderPhoto1'] = imageUrl1;
+        }
+        if (image2 != null) {
+          imageUrl2 = await FirebaseService().uploadImage(image2, 'order_images/${order.documentId}/3');
+          if (imageUrl2 != null) updateData['riderOrderPhoto2'] = imageUrl2;
+        }
+      }
+
+      await firestore.collection('orders').doc(order.documentId).update(updateData);
+      return true;
+    } catch (e) {
+      log('Error updating order state: $e');
+      return false;
+    }
+  }
 }

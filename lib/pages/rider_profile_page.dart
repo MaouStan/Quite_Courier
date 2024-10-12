@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
-import 'dart:io'; // To handle File
+import 'dart:io';
+
+import 'package:quite_courier/services/utils.dart'; // To handle File
 
 class RiderProfilePage extends StatefulWidget {
   const RiderProfilePage({super.key});
@@ -220,7 +222,6 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
                               isEditMode = false;
                               _selectedProfileImage = null;
                               _selectedVehicleImage = null;
-                              riderController.resetImageSelection();
                               _initializeControllers();
                             });
                           },
@@ -282,7 +283,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Take Photo'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderController.takePhoto();
+                File? selected = await Utils().takePhoto();
                 if (selected != null) {
                   setState(() {
                     _selectedVehicleImage = selected;
@@ -295,7 +296,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Pick Image'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderController.pickImage();
+                File? selected = await Utils().pickImage();
                 if (selected != null) {
                   setState(() {
                     _selectedVehicleImage = selected;
@@ -320,7 +321,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Take Photo'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderController.takePhoto();
+                File? selected = await Utils().takePhoto();
                 if (selected != null) {
                   setState(() {
                     _selectedProfileImage = selected;
@@ -333,7 +334,7 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
               title: const Text('Pick Image'),
               onTap: () async {
                 Navigator.pop(context);
-                File? selected = await riderController.pickImage();
+                File? selected = await Utils().pickImage();
                 if (selected != null) {
                   setState(() {
                     _selectedProfileImage = selected;

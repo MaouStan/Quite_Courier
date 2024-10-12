@@ -1,14 +1,16 @@
+import 'dart:developer' as dev;
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart';
 
 class UserService {
   // {{ edit_12: Define fetchRiderPosition method }}
-  static Future<LatLng> fetchRiderPosition(String riderId) async {
+  static Future<LatLng> fetchRiderPosition(String riderTelephone) async {
     // Simulate a network call to fetch rider's position
     // Replace this with your actual database/API call
     // final response =
-    //     await http.get(Uri.parse('https://yourapi.com/rider/$riderId/position'));
+    //     await http.get(Uri.parse('https://yourapi.com/rider/$riderTelephone/position'));
 
     // if (response.statusCode == 200) {
     //   final data = json.decode(response.body);
@@ -17,33 +19,44 @@ class UserService {
     //   throw Exception('Failed to load rider position');
     // }
 
-    var random = Random();
-    // in range lat 16.250743 ± 0.05
-    // in range long 103.24796 ± 0.05
-    return LatLng(random.nextDouble() * 0.1 + 16.250743 - 0.05,
-        random.nextDouble() * 0.1 + 103.24796 - 0.05);
+    // var random = Random();
+    // // in range lat 16.250743 ± 0.05
+    // // in range long 103.24796 ± 0.05
+    // return LatLng(random.nextDouble() * 0.1 + 16.250743 - 0.05,
+    //     random.nextDouble() * 0.1 + 103.24796 - 0.05);
+
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentSnapshot riderDoc =
+        await firestore.collection('riders').doc(riderTelephone).get();
+    return LatLng(
+        riderDoc['location']['latitude'], riderDoc['location']['longitude']);
   }
 
   // {{ edit_13: Define fetchRiderPositions method }}
   static Future<Map<String, LatLng>> fetchRiderPositions(
-      List<String> riderIds) async {
+      List<String> riderTelephones) async {
     Map<String, LatLng> positions = {};
-    for (String riderId in riderIds) {
-      // Simulate a network call to fetch each rider's position
-      // Replace this with your actual database/API call
-      // final response = await http
-      //     .get(Uri.parse('https://yourapi.com/rider/$riderId/position'));
+    for (String riderTelephone in riderTelephones) {
+      // // Simulate a network call to fetch each rider's position
+      // // Replace this with your actual database/API call
+      // // final response = await http
+      // //     .get(Uri.parse('https://yourapi.com/rider/$riderTelephone/position'));
 
-      // if (response.statusCode == 200) {
-      //   final data = json.decode(response.body);
-      //   positions[riderId] = LatLng(data['latitude'], data['longitude']);
-      // } else {
-      //   throw Exception('Failed to load rider position for $riderId');
-      // }
-      var random = Random();
-      positions[riderId] = LatLng(random.nextDouble() * 0.1 + 16.250743 - 0.05,
-          random.nextDouble() * 0.1 + 103.24796 - 0.05);
+      // // if (response.statusCode == 200) {
+      // //   final data = json.decode(response.body);
+      // //   positions[riderTelephone] = LatLng(data['latitude'], data['longitude']);
+      // // } else {
+      // //   throw Exception('Failed to load rider position for $riderTelephone');
+      // // }
+      // var random = Random();
+      // positions[riderTelephone] = LatLng(random.nextDouble() * 0.1 + 16.250743 - 0.05,
+      //     random.nextDouble() * 0.1 + 103.24796 - 0.05);
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      dev.log('Fetching rider position for $riderTelephone');
+      DocumentSnapshot riderDoc = await firestore.collection('riders').doc(riderTelephone).get();
+      positions[riderTelephone] = LatLng(riderDoc['location']['latitude'], riderDoc['location']['longitude']);
     }
+    dev.log('positions: $positions');
     return positions;
   }
 }

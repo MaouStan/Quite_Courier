@@ -1,13 +1,16 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/rider_order_detail.dart';
 import 'package:quite_courier/services/order_service.dart';
+import 'package:quite_courier/services/utils.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/pages/map_page.dart';
@@ -22,19 +25,22 @@ class RiderHomePage extends StatefulWidget {
 
 class _RiderHomePageState extends State<RiderHomePage> {
   final RiderController stateController = Get.find<RiderController>();
-  List<OrderDataRes> orders = [];
+  List<OrderDataRes> pendingOrders = [];
   Future<void>? futureOrders;
 
   @override
   void initState() {
     super.initState();
-    futureOrders = loadOrders();
+    futureOrders = _initialize();
   }
 
-  Future<void> loadOrders() async {
-    orders = await OrderService.fetchOrderWithOrderState(OrderState.pending);
+  Future<void> _initialize() async {
+    pendingOrders = await OrderService.fetchOrderWithOrderState(OrderState.pending);
+    var myOrder = await OrderService.fetchOrderWithRiderAndState(stateController.riderData.value.telephone, OrderState.accepted);
+    stateController.currentOrder = myOrder.isNotEmpty ? myOrder.first : null;
+    stateController.currentState.value = RiderOrderState.sendingOrder;
     setState(() {});
-    log('Orders: $orders');
+    log('Pending Orders: $pendingOrders');
   }
 
   @override
@@ -42,35 +48,33 @@ class _RiderHomePageState extends State<RiderHomePage> {
     return Scaffold(
       appBar: const CustomAppBar(userType: UserType.rider),
       drawer: const MyDrawer(userType: UserType.rider),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileSection(),
-            const SizedBox(height: 16),
-            Expanded(
-              child: FutureBuilder<void>(
-                future: futureOrders,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return const Center(child: Text('Error loading orders'));
-                  } else {
-                    return Obx(() {
-                      if (stateController.currentState.value ==
-                          RiderOrderState.sendingOrder) {
-                        return _buildSendingOrderSection();
-                      } else {
-                        return _buildAvailableOrdersSection();
-                      }
-                    });
-                  }
-                },
+      body: RefreshIndicator(
+        onRefresh: _initialize,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileSection(),
+              const SizedBox(height: 16),
+              Expanded(
+                child: FutureBuilder<void>(
+                  future: futureOrders,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Center(child: Text('Error loading orders'));
+                    } else {
+                      return stateController.currentOrder == null
+                          ? _buildPendingOrdersSection()
+                          : _buildSendingOrderSection();
+                    }
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -87,9 +91,10 @@ class _RiderHomePageState extends State<RiderHomePage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 30,
-                backgroundImage: AssetImage('assets/images/profile.png'),
+                backgroundImage: NetworkImage(
+                    stateController.riderData.value.profileImageUrl ?? ''),
               ),
               const SizedBox(width: 12),
               Text(stateController.riderData.value.name,
@@ -107,25 +112,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 'จัดส่งแล้ว',
                 style: TextStyle(fontSize: 18, color: Color(0xFFb0c7fb)),
               ),
-              Expanded(child: Container()),
               Text(
                 stateController.orderCount.toString(),
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFb0c7fb)),
-              ),
-              Expanded(child: Container()),
-              const Text(
-                'กำลังจัดส่ง',
-                style: TextStyle(fontSize: 18, color: Color(0xFFb0c7fb)),
-              ),
-              Expanded(child: Container()),
-              Text(
-                stateController.currentState.value ==
-                        RiderOrderState.sendingOrder
-                    ? '1'
-                    : '0',
                 style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -138,7 +126,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
     );
   }
 
-  Widget _buildAvailableOrdersSection() {
+  Widget _buildPendingOrdersSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -147,17 +135,179 @@ class _RiderHomePageState extends State<RiderHomePage> {
         const SizedBox(height: 8),
         Expanded(
           child: ListView.builder(
-            itemCount: orders.length,
+            itemCount: pendingOrders.length,
             itemBuilder: (context, index) {
-              if (orders[index].state == OrderState.pending) {
-                return _buildOrderCard(orders[index]);
-              }
-              return Container();
+              return _buildOrderCard(pendingOrders[index]);
             },
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildOrderCard(OrderDataRes order) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFF4b45c2), width: 2),
+      ),
+      color: const Color(0xFF9195f4),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  order.nameOrder,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: order.state == OrderState.pending
+                        ? const Color(0xFF4CAF50)
+                        : Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  onPressed: () => order.state == OrderState.pending
+                      ? _acceptOrder(order)
+                      : _cancelOrder(order),
+                  child: Text(
+                      order.state == OrderState.pending ? 'รับงาน' : 'ยกเลิก',
+                      style: const TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Image.network(
+                  order.orderPhoto,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.error),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ผู้รับ: ${order.receiverName}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      Text(
+                        'ต้นทาง: ${order.senderAddress}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      Text(
+                        'ปลายทาง: ${order.receiverAddress}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _acceptOrder(OrderDataRes order) {
+    Get.defaultDialog(
+      title: "ยืนยันการรับงาน",
+      middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
+      textConfirm: "ยืนยัน",
+      textCancel: "ยกเลิก",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        order.state = OrderState.accepted;
+        order.riderName = stateController.riderData.value.name;
+        order.riderTelephone = stateController.riderData.value.telephone;
+        order.riderVehicleRegistration = stateController.riderData.value.vehicleRegistration;
+
+        bool success = await OrderService.updateOrder(order);
+        if (success) {
+          stateController.currentOrder = order;
+          stateController.currentState.value = RiderOrderState.sendingOrder;
+          Get.back(); // Close dialog
+          setState(() {});
+        } else {
+          Get.snackbar('Error', 'Failed to accept order. Please try again.');
+        }
+      },
+    );
+  }
+
+  void _cancelOrder(OrderDataRes order) {
+    Get.defaultDialog(
+      title: "ยืนยันการยกเลิกงาน",
+      middleText: "คุณต้องการยกเลิกงานนี้ใช่หรือไม่?",
+      textConfirm: "ยืนยัน",
+      textCancel: "ยกเลิก",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        order.state = OrderState.pending;
+        order.riderName = '';
+        order.riderTelephone = '';
+        order.riderVehicleRegistration = '';
+        bool success = await OrderService.updateOrder(order);
+        if (success) {
+          stateController.currentOrder = null;
+          stateController.currentState.value = RiderOrderState.waitGetOrder;
+          Get.back(); // Close dialog
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  Future<void> _updateOrderState(OrderState newState) async {
+    if (stateController.currentOrder == null) return;
+    Get.dialog(const Center(child: CircularProgressIndicator()));
+    File? image1, image2;
+    if (newState == OrderState.onDelivery) {
+      image1 = await Utils().takePhoto();
+    } else if (newState == OrderState.completed) {
+      image2 = await Utils().takePhoto();
+    }
+
+    if (image1 == null && image2 == null) {
+      Get.back();
+      return;
+    }
+
+    bool success = await OrderService.updateOrder(stateController.currentOrder!, image1: image1, image2: image2);
+
+    if (success) {
+      stateController.currentOrder!.state = newState;
+      if (newState == OrderState.completed) {
+        stateController.currentOrder = null;
+        stateController.currentState.value = RiderOrderState.waitGetOrder;
+        futureOrders = _initialize();
+      }
+      setState(() {});
+    } else {
+      Get.snackbar('Error', 'Failed to update order state. Please try again.');
+    }
+    Get.back();
   }
 
   Widget _buildSendingOrderSection() {
@@ -184,135 +334,26 @@ class _RiderHomePageState extends State<RiderHomePage> {
           ),
           const SizedBox(height: 8),
           _buildMapSection(),
+          const SizedBox(height: 8),
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (stateController.currentOrder!.state == OrderState.accepted)
+                  ElevatedButton(
+                    onPressed: () => _updateOrderState(OrderState.onDelivery),
+                    child: const Text('Start Delivery'),
+                  ),
+                if (stateController.currentOrder!.state ==
+                    OrderState.onDelivery)
+                  ElevatedButton(
+                    onPressed: () => _updateOrderState(OrderState.completed),
+                    child: const Text('Complete Order'),
+                  ),
+              ],
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildOrderCard(OrderDataRes order) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFF4b45c2), width: 2),
-      ),
-      color: const Color(0xFF9195f4),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'กล่องเปล่า',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                Row(
-                  children: [
-                    if (order.state !=
-                        OrderState
-                            .pending) // Check if the order is not in sending state
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFf7c948),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: () {
-                          // Handle additional action
-                          Get.to(() => const RiderOrderDetail(
-                                orderId: '4',
-                              ));
-                        },
-                        child: const Text('เพิ่มเติม',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                    const SizedBox(width: 8),
-                    if (order.state != OrderState.pending)
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFf76c6c),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: () {
-                          // Handle cancel action
-                          stateController.currentState.value =
-                              RiderOrderState.waitGetOrder;
-                          stateController.currentOrder = null;
-                          order.state = OrderState.pending;
-                          setState(() {});
-                        },
-                        child: const Text('ยกเลิก',
-                            style: TextStyle(color: Colors.white)),
-                      ),
-                    const SizedBox(width: 8),
-                    if (order.state ==
-                        OrderState
-                            .pending) // Check if the order is not in sending state
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(
-                              0xFF4CAF50), // Green color for accept button
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: () {
-                          // Handle accept order action
-                          stateController.currentState.value =
-                              RiderOrderState.sendingOrder;
-                          order.state = OrderState.accepted;
-                          stateController.currentOrder = order;
-                          setState(() {});
-                        },
-                        child: const Text('รับงาน',
-                            style: TextStyle(
-                                color: Colors.white)), // Accept Order button
-                      ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.photo_library, size: 50, color: Colors.white),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 200,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ผู้รับ: ${order.receiverName}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      Text(
-                        'ต้นทาง: ${order.senderAddress}',
-                        maxLines: 1,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      Text(
-                        'ปลายทาง: ${order.receiverAddress}',
-                        maxLines: 1,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -433,26 +474,34 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MapPage(
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => MapPage(
+        //       mode: MapMode.route,
+        //       riderTelephone: stateController.currentOrder!.riderTelephone,
+        //       orderPosition: orderPosition,
+        //       focusOnRider: true,
+        //     ),
+        //   ),
+        // );
+        Get.to(() => MapPage(
               mode: MapMode.route,
-              riderId: stateController.currentOrder!.riderTelephone,
+              riderTelephone: stateController.currentOrder!.riderTelephone,
               orderPosition: orderPosition,
               focusOnRider: true,
-            ),
-          ),
-        );
+            ));
       },
       child: SizedBox(
         height: 200,
         child: MapPage(
           mode: MapMode.route,
-          riderId: stateController.currentOrder!.riderTelephone,
+          riderTelephone: stateController.currentOrder!.riderTelephone,
           orderPosition: orderPosition,
           focusOnRider: true,
+          update: false,
         ),
+        // child: Icon(Icons.map, size: 200),
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_people.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/models/order_data_res.dart';
+import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
 import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
@@ -88,6 +89,18 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
                         Text('สิ่งที่คุณส่ง :'),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                        onPressed: () {
+                          Get.to(() => MapPage(
+                                mode: MapMode.tracks,
+                                riderTelephones: sentOrders
+                                    .where((order) => order.riderTelephone != null && (order.state == OrderState.accepted || order.state == OrderState.onDelivery))
+                                    .map((order) => order.riderTelephone!)
+                                    .toSet().toList(),
+                              ));
+                        },
+                        child: const Text('Track All')),
                     const SizedBox(height: 8),
                     OrderListView(useIncomingData: false, orders: sentOrders),
                   ],

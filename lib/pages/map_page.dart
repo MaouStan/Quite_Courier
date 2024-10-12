@@ -3,6 +3,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
@@ -73,14 +75,14 @@ class SelectModeHandler extends MapModeHandler {
 }
 
 class RouteModeHandler extends MapModeHandler {
-  final String riderId;
+  final String riderTelephone;
   final VoidCallback onUpdate;
   final bool focusOnRider;
   final LatLng orderPosition; // Add order position
 
-  RouteModeHandler(this.riderId, this.onUpdate, this.orderPosition,
+  RouteModeHandler(this.riderTelephone, this.onUpdate, this.orderPosition,
       {this.focusOnRider = false}) {
-    dev.log('RouteModeHandler created for riderId: $riderId');
+    dev.log('RouteModeHandler created for riderTelephone: $riderTelephone');
     // _initializePositions();
     _startTimer();
     allowUpdate = true;
@@ -107,7 +109,7 @@ class RouteModeHandler extends MapModeHandler {
   ];
 
   Color get routeColor {
-    int hash = riderId.hashCode;
+    int hash = riderTelephone.hashCode;
     int index = hash % _colorOptions.length;
     return _colorOptions[index].withOpacity(0.7);
   }
@@ -163,7 +165,7 @@ class RouteModeHandler extends MapModeHandler {
                       : const Icon(Icons.directions_bike,
                           color: Colors.red, size: 40),
                   Text(
-                    riderId,
+                    riderTelephone,
                     style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
@@ -188,7 +190,7 @@ class RouteModeHandler extends MapModeHandler {
 
     //   try {
     //     if (!focusOnRider) {
-    //       LatLng riderPos = await UserService.fetchRiderPosition(riderId);
+    //       LatLng riderPos = await UserService.fetchRiderPosition(riderTelephone);
     //       riderPosition = riderPos;
     //       route = await MapService.fetchRoute(
     //           myPosition!, riderPosition!); // Update route to order position
@@ -225,7 +227,7 @@ class RouteModeHandler extends MapModeHandler {
 
         try {
           if (!focusOnRider) {
-            LatLng riderPos = await UserService.fetchRiderPosition(riderId);
+            LatLng riderPos = await UserService.fetchRiderPosition(riderTelephone);
             riderPosition = riderPos;
             route = await MapService.fetchRoute(
                 myPosition!, riderPosition!); // Update route to order position
@@ -246,6 +248,10 @@ class RouteModeHandler extends MapModeHandler {
         onUpdate();
         await Future.delayed(const Duration(seconds: 5));
         allowUpdate = true;
+        // if current page no map page no update cancel
+        if (Get.currentRoute != '/MapPage') {
+          timer.cancel();
+        }
       } catch (e) {
         dev.log('Error updating position: $e');
       }
@@ -262,11 +268,11 @@ class RouteModeHandler extends MapModeHandler {
 }
 
 class TracksModeHandler extends MapModeHandler {
-  final List<String> riderIds;
+  final List<String> riderTelephones;
   final VoidCallback onUpdate;
 
-  TracksModeHandler(this.riderIds, this.onUpdate) {
-    dev.log('TracksModeHandler created for riderIds: $riderIds');
+  TracksModeHandler(this.riderTelephones, this.onUpdate) {
+    dev.log('TracksModeHandler created for riderTelephones: $riderTelephones');
     _initializePositions();
     _startTimer();
     allowUpdate = false;
@@ -295,17 +301,17 @@ class TracksModeHandler extends MapModeHandler {
     Colors.lime,
   ];
 
-  // {{ edit_6: Assign colors to each riderId }}
+  // {{ edit_6: Assign colors to each riderTelephone }}
   final Map<String, Color> _riderColors = {};
 
-  Color getColorForRider(String riderId) {
-    if (_riderColors.containsKey(riderId)) {
-      return _riderColors[riderId]!;
+  Color getColorForRider(String riderTelephone) {
+    if (_riderColors.containsKey(riderTelephone)) {
+      return _riderColors[riderTelephone]!;
     } else {
-      int hash = riderId.hashCode;
+      int hash = riderTelephone.hashCode;
       int index = hash % _colorOptions.length;
       Color color = _colorOptions[index].withOpacity(0.7);
-      _riderColors[riderId] = color;
+      _riderColors[riderTelephone] = color;
       return color;
     }
   }
@@ -351,11 +357,11 @@ class TracksModeHandler extends MapModeHandler {
                 child: const Icon(Icons.person_pin_circle,
                     color: Colors.green, size: 40),
               ),
-            ...riderIds.map((riderId) {
+            ...riderTelephones.map((riderTelephone) {
               LatLng riderPosition =
-                  riderPositions[riderId] ?? const LatLng(0, 0);
+                  riderPositions[riderTelephone] ?? const LatLng(0, 0);
               Color riderColor =
-                  _riderColors[riderId] ?? getColorForRider(riderId);
+                  _riderColors[riderTelephone] ?? getColorForRider(riderTelephone);
               return Marker(
                 width: 80.0,
                 height: 80.0,
@@ -367,7 +373,7 @@ class TracksModeHandler extends MapModeHandler {
                     Padding(
                       padding: const EdgeInsets.all(2.0),
                       child: Text(
-                        riderId, // Display riderId below the icon
+                        riderTelephone, // Display riderTelephone below the icon
                         style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -414,28 +420,33 @@ class TracksModeHandler extends MapModeHandler {
       try {
         LatLng myPos = await GeolocatorServices.getCurrentLocation();
         myPosition = myPos;
-        Map<String, LatLng> riderPos = await UserService.fetchRiderPositions(
-            riderIds); // {{ edit_9: Use UserService }}
-        riderPositions = riderPos;
         dev.log('${DateTime.now()} Updated positions');
+        Map<String, LatLng> riderPos = await UserService.fetchRiderPositions(riderTelephones); // {{ edit_9: Use UserService }}
+        dev.log('${DateTime.now()} Updated positions');
+        riderPositions = riderPos;
 
         // Fetch and update routes for each rider
-        // for (String riderId in riderIds) {
+        // for (String riderTelephone in riderTelephones) {
         //   try {
-        //     List<LatLng> route = await MapService.fetchRoute(riderPositions[riderId]!, myPosition!); // {{ edit_10: Use MapService }}
-        //     routes[riderId] = route;
-        //     dev.log('${DateTime.now()} Updated route for $riderId');
+        //     List<LatLng> route = await MapService.fetchRoute(riderPositions[riderTelephone]!, myPosition!); // {{ edit_10: Use MapService }}
+        //     routes[riderTelephone] = route;
+        //     dev.log('${DateTime.now()} Updated route for $riderTelephone');
         //   } catch (e) {
-        //     dev.log('Error fetching route for $riderId: $e');
-        //     routes.remove(riderId); // Remove route if fetching fails
+        //     dev.log('Error fetching route for $riderTelephone: $e');
+        //     routes.remove(riderTelephone); // Remove route if fetching fails
         //   }
         // }
 
         onUpdate();
         await Future.delayed(const Duration(seconds: 3));
         allowUpdate = true;
+        // if current page no map page no update cancel
+        dev.log('Get.currentRoute: ${Get.currentRoute}');
+        if (Get.currentRoute != '/MapPage') {
+          timer.cancel();
+        }
       } catch (e) {
-        dev.log('Error updating position: $e');
+        dev.log('Error updating position Track: $e');
       }
     });
   }
@@ -451,20 +462,22 @@ class TracksModeHandler extends MapModeHandler {
 
 class MapPage extends StatefulWidget {
   final MapMode mode;
-  final String? riderId;
-  final List<String>? riderIds;
+  final String? riderTelephone;
+  final List<String>? riderTelephones;
   final bool focusOnRider;
   final LatLng? orderPosition;
   final LatLng? selectedPosition;
+  final bool update;
 
   const MapPage(
       {super.key,
       this.mode = MapMode.select,
-      this.riderId,
-      this.riderIds,
+      this.riderTelephone,
+      this.riderTelephones,
       this.focusOnRider = false,
       this.orderPosition,
-      this.selectedPosition});
+      this.selectedPosition,
+      this.update = true});
 
   @override
   _MapPageState createState() => _MapPageState();
@@ -531,21 +544,21 @@ class _MapPageState extends State<MapPage> {
       MapMode mode, bool focusOnRider, LatLng? orderPosition) {
     switch (mode) {
       case MapMode.route:
-        if (widget.riderId == null) {
-          throw Exception('riderId must be provided for RouteMode');
+        if (widget.riderTelephone == null) {
+          throw Exception('riderTelephone must be provided for RouteMode');
         }
 
-        return RouteModeHandler(widget.riderId!, () {
+        return RouteModeHandler(widget.riderTelephone!, () {
           if (mounted) {
             setState(() {});
           }
         }, orderPosition ?? const LatLng(0, 0),
             focusOnRider: focusOnRider); // Pass order position
       case MapMode.tracks:
-        if (widget.riderIds == null) {
-          throw Exception('riderIds must be provided for TracksMode');
+        if (widget.riderTelephones == null) {
+          throw Exception('riderTelephones must be provided for TracksMode');
         }
-        return TracksModeHandler(widget.riderIds!, () {
+        return TracksModeHandler(widget.riderTelephones!, () {
           if (mounted) {
             setState(() {});
           }

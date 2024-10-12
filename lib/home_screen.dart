@@ -14,8 +14,8 @@ class HomeScreen extends StatelessWidget {
   //   const LatLng(16.280743, 103.27796)
   // ];
 
-  final String riderId = '123';
-  final List<String> riderIds = ['123', '456', '789', '101', '112'];
+  final String riderTelephone = '123';
+  final List<String> riderTelephones = [];
 
   HomeScreen({super.key}); // Example target position
 
@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      MapPage(mode: MapMode.route, riderId: riderId),
+                      MapPage(mode: MapMode.route, riderTelephone: riderTelephone),
                 ),
               );
             },
@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      MapPage(mode: MapMode.tracks, riderIds: riderIds),
+                      MapPage(mode: MapMode.tracks, riderTelephones: riderTelephones),
                 ),
               );
             },
