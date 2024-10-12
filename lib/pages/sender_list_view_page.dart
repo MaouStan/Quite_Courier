@@ -90,18 +90,6 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    ElevatedButton(
-                        onPressed: () {
-                          Get.to(() => MapPage(
-                                mode: MapMode.tracks,
-                                riderTelephones: sentOrders
-                                    .where((order) => order.riderTelephone != null && (order.state == OrderState.accepted || order.state == OrderState.onDelivery))
-                                    .map((order) => order.riderTelephone!)
-                                    .toSet().toList(),
-                              ));
-                        },
-                        child: const Text('Track All')),
-                    const SizedBox(height: 8),
                     OrderListView(useIncomingData: false, orders: sentOrders),
                   ],
                 ),
