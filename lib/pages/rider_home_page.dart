@@ -9,12 +9,14 @@ import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/rider_order_detail.dart';
+import 'package:quite_courier/services/geolocator_services.dart';
 import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/services/utils.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class RiderHomePage extends StatefulWidget {
   const RiderHomePage({super.key});
@@ -35,8 +37,10 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Future<void> _initialize() async {
-    pendingOrders = await OrderService.fetchOrderWithOrderState(OrderState.pending);
-    var myOrder = await OrderService.fetchOrderWithRiderAndState(stateController.riderData.value.telephone, OrderState.accepted);
+    pendingOrders =
+        await OrderService.fetchOrderWithOrderState(OrderState.pending);
+    var myOrder = await OrderService.fetchOrderWithRiderAndState(
+        stateController.riderData.value.telephone, OrderState.accepted);
     stateController.currentOrder = myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
     setState(() {});
@@ -241,7 +245,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
         order.state = OrderState.accepted;
         order.riderName = stateController.riderData.value.name;
         order.riderTelephone = stateController.riderData.value.telephone;
-        order.riderVehicleRegistration = stateController.riderData.value.vehicleRegistration;
+        order.riderVehicleRegistration =
+            stateController.riderData.value.vehicleRegistration;
 
         bool success = await OrderService.updateOrder(order);
         if (success) {
@@ -294,7 +299,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
       return;
     }
 
-    bool success = await OrderService.updateOrder(stateController.currentOrder!, image1: image1, image2: image2);
+    bool success = await OrderService.updateOrder(stateController.currentOrder!,
+        image1: image1, image2: image2);
 
     if (success) {
       stateController.currentOrder!.state = newState;
@@ -312,49 +318,87 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   Widget _buildSendingOrderSection() {
     log('Sending order: ${stateController.currentOrder!.toString()}');
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('งานที่กำลังทำ',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          _buildOrderCard(stateController.currentOrder!),
-          const SizedBox(height: 16),
-          const Text('สถานะการจัดส่ง',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          _buildDeliveryStatus(),
-          const SizedBox(height: 16),
-          Text(
+    return FutureBuilder<LatLng>(
+      future: GeolocatorServices.getCurrentLocation(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final currentLocation =
+            LatLng(snapshot.data!.latitude, snapshot.data!.longitude);
+        final targetLocation =
             stateController.currentOrder!.state == OrderState.accepted
-                ? 'สถานที่รับของ' // Show this text if the order is accepted
-                : 'สถานที่ส่งของ', // Show this text if the order is on delivery
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          _buildMapSection(),
-          const SizedBox(height: 8),
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (stateController.currentOrder!.state == OrderState.accepted)
-                  ElevatedButton(
-                    onPressed: () => _updateOrderState(OrderState.onDelivery),
-                    child: const Text('Start Delivery'),
+                ? stateController.currentOrder!.senderLocation
+                : stateController.currentOrder!.receiverLocation;
+
+        final distance = GeolocatorServices.calculateDistance(
+            currentLocation, targetLocation);
+        final isWithinRange = distance <= 20;
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('งานที่กำลังทำ',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              _buildOrderCard(stateController.currentOrder!),
+              const SizedBox(height: 16),
+              const Text('สถานะการจัดส่ง',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              _buildDeliveryStatus(),
+              const SizedBox(height: 16),
+              Text(
+                stateController.currentOrder!.state == OrderState.accepted
+                    ? 'สถานที่รับของ' // Show this text if the order is accepted
+                    : 'สถานที่ส่งของ', // Show this text if the order is on delivery
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildMapSection(),
+              const SizedBox(height: 8),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (stateController.currentOrder!.state ==
+                        OrderState.accepted)
+                      ElevatedButton(
+                        onPressed: isWithinRange
+                            ? () => _updateOrderState(OrderState.onDelivery)
+                            : null,
+                        child: const Text('Start Delivery'),
+                      ),
+                    if (stateController.currentOrder!.state ==
+                        OrderState.onDelivery)
+                      ElevatedButton(
+                        onPressed: isWithinRange
+                            ? () => _updateOrderState(OrderState.completed)
+                            : null,
+                        child: const Text('Complete Order'),
+                      ),
+                  ],
+                ),
+              ),
+              if (!isWithinRange)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'You must be within 20 meters of the ${stateController.currentOrder!.state == OrderState.accepted ? "pickup" : "delivery"} location to proceed.',
+                    style: TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
                   ),
-                if (stateController.currentOrder!.state ==
-                    OrderState.onDelivery)
-                  ElevatedButton(
-                    onPressed: () => _updateOrderState(OrderState.completed),
-                    child: const Text('Complete Order'),
-                  ),
-              ],
-            ),
+                ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
