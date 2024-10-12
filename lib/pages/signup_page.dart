@@ -1,13 +1,14 @@
-import 'dart:developer';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/rider_home_page.dart';
 import 'package:quite_courier/pages/signin_page.dart';
+import 'package:quite_courier/services/geolocator_services.dart';
 import 'dart:io';
 
-import 'package:quite_courier/pages/user_home_page.dart';
 import 'package:quite_courier/services/user_service.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -27,10 +28,11 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _addDescripController = TextEditingController();
-  String location = '37.421998, -122.084';
+  late TextEditingController _positionController = TextEditingController();
   bool _obscureText = true;
   File? _profileImage;
   File? _vehicleImage;
+  LatLng? _selectedPosition;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -41,10 +43,33 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       vsync: this,
       initialIndex: 0,
     );
+    // Schedule the location fetching to after the build is complete
+    Future.delayed(Duration.zero, () {
+      fetchMyLocation();
+    });
+    // Disable manual tab changes by tapping on TabBar
+    _tabController.addListener(_handleTabSelection);
+  }
+
+  void _handleTabSelection() {
+    bool shouldStayOnCurrentTab = false;
+
+    if (_tabController.index == 1) {
+      shouldStayOnCurrentTab = !_validateAuthenticationTab(isNotify: false);
+    } else if (_tabController.index == 2) {
+      shouldStayOnCurrentTab = !_validatePersonalDataTab(isNotify: false);
+    }
+
+    if (shouldStayOnCurrentTab) {
+      // Prevent changing the tab by setting it back to the current index
+      _tabController.index = _tabController.previousIndex;
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
     _telephoneController.dispose();
     _passwordController.dispose();
@@ -58,7 +83,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
-        log(_profileImage!.path);
+        dev.log(_profileImage!.path);
       });
     }
   }
@@ -96,24 +121,35 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         barrierDismissible: false,
       );
 
-      await _userService.registerUser(
+      String result = await _userService.registerUser(
         telephone: telephone,
         password: password,
         name: name,
         description: description,
-        location: location,
+        location: _positionController.text,
         profileImage: _profileImage,
       );
 
-      Get.back();
-      Get.snackbar(
-        'Success',
-        'User registered successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-
-      Get.offAll(() => const SigninPage());
+      // Clear All Old Snackbars
+      Get.closeAllSnackbars();
+      if (result == 'User registered successfully') {
+        Get.back();
+        Get.snackbar(
+          'Success',
+          result,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        Get.offAll(() => const SigninPage());
+      } else {
+        Get.back();
+        Get.snackbar(
+          'Error',
+          result,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     } catch (e) {
       // Close loading dialog if it's showing
       if (Get.isDialogOpen ?? false) {
@@ -190,6 +226,60 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     return 'An error occurred during registration. Please try again.';
   }
 
+  bool _validateAuthenticationTab({bool isNotify = true}) {
+    if (_telephoneController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      if (isNotify) {
+        Get.snackbar(
+          'Incomplete Data',
+          'Please fill in all fields in the Authentication tab.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+      return false;
+    }
+    if (!_isValidPhoneNumber(_telephoneController.text.trim())) {
+      if (isNotify) {
+        Get.snackbar(
+          'Invalid Phone Number',
+          'Please enter a valid phone number.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+      return false;
+    }
+    if (_passwordController.text != _confirmPasswordController.text) {
+      if (isNotify) {
+        Get.snackbar(
+          'Password Mismatch',
+          'Passwords do not match.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+      return false;
+    }
+    return true;
+  }
+
+  bool _validatePersonalDataTab({bool isNotify = true}) {
+    if (_nameController.text.isEmpty || _profileImage == null) {
+      if (isNotify) {
+        Get.snackbar(
+          'Incomplete Data',
+          'Please provide a name and profile image.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -247,6 +337,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 20),
               TabBar(
+                isScrollable: false,
                 controller: _tabController,
                 tabs: [
                   const Tab(text: 'Authentication'),
@@ -293,6 +384,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           ),
           TextField(
             controller: _telephoneController,
+            keyboardType: TextInputType.phone,
             decoration: InputDecoration(
               hintText: '0999999999',
               filled: true,
@@ -369,9 +461,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           const SizedBox(height: 55),
           Center(
             child: ElevatedButton(
-              onPressed: () {
-                _tabController.animateTo(1);
-              },
+              onPressed: _goToNextTab,
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.role == 'Rider'
                     ? const Color(0xFF8E97FD)
@@ -483,9 +573,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                 ),
               ),
               ElevatedButton(
-                onPressed: () {
-                  _tabController.animateTo(2);
-                },
+                onPressed: _goToNextTab,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: widget.role == 'Rider'
                       ? const Color(0xFF8E97FD)
@@ -524,25 +612,50 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               fontSize: Get.textTheme.titleMedium!.fontSize,
             ),
           ),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Longtitude 90.0 , Latitude 999',
-              hintStyle: TextStyle(color: Colors.grey.shade400),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              suffixIcon: IconButton(
-                icon: Image.asset(
-                  'assets/images/google-maps.png',
-                  width: 32,
+          Stack(
+            children: [
+              TextField(
+                enabled: false,
+                controller: _positionController,
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
+                  hintText: 'Longtitude 90.0 , Latitude 999',
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                onPressed: () {
-                  log('open map');
-                },
               ),
-            ),
+              Positioned(
+                right: 0,
+                bottom: 5,
+                child: IconButton(
+                  icon: Image.asset(
+                    'assets/images/google-maps.png',
+                    width: 32,
+                  ),
+                  onPressed: () async {
+                    dev.log('open map');
+                    LatLng? oldPostiion = _selectedPosition;
+                    dev.log('oldPostiion: $oldPostiion');
+                    _selectedPosition = await Get.to(() => MapPage(
+                          mode: MapMode.select,
+                          selectedPosition: oldPostiion,
+                        ));
+                    dev.log('selectedPosition: $_selectedPosition');
+                    if (_selectedPosition != null) {
+                      _positionController.text =
+                          '${_selectedPosition?.latitude}, ${_selectedPosition?.longitude}';
+                    } else {
+                      _positionController.text =
+                          '${oldPostiion?.latitude}, ${oldPostiion?.longitude}';
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Text(
@@ -593,7 +706,6 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ),
               ElevatedButton(
                 onPressed: () {
-                  log('Sing up');
                   _register();
                   // Get.to(() => const UserhomePage(),
                   //     transition: Transition.noTransition);
@@ -708,8 +820,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
               ),
               ElevatedButton(
                 onPressed: () {
-                  log('Sing up');
-                  Get.to(() => RiderHomePage());
+                  dev.log('Sing up');
+                  Get.to(() => const RiderHomePage());
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF8E97FD),
@@ -731,5 +843,27 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  void _goToNextTab() {
+    if (_tabController.index == 0 &&
+        _validateAuthenticationTab(isNotify: true)) {
+      _tabController.animateTo(_tabController.index + 1);
+    } else if (_tabController.index == 1 &&
+        _validatePersonalDataTab(isNotify: true)) {
+      _tabController.animateTo(_tabController.index + 1);
+    }
+  }
+
+  Future<void> fetchMyLocation() async {
+    bool hasPermission = await GeolocatorServices.checkPermission();
+    if (hasPermission) {
+      LatLng position = await GeolocatorServices.getCurrentLocation();
+      _positionController.text = '${position.latitude}, ${position.longitude}';
+      // Use the position for whatever you need here
+    } else {
+      // Handle the case where permission is not granted
+      dev.log('Location permission not granted');
+    }
   }
 }

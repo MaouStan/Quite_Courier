@@ -1,13 +1,13 @@
-import 'dart:developer';
 import 'dart:io';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:quite_courier/models/user_data.dart';
+import 'package:quite_courier/services/firebase_service.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseService _firebaseService =
+      FirebaseService(); // Create an instance of FirebaseService
 
   // {{ edit_12: Define fetchRiderPosition method }}
   static Future<LatLng> fetchRiderPosition(String riderId) async {
@@ -53,7 +53,7 @@ class UserService {
     return positions;
   }
 
-  Future<void> registerUser({
+  Future<String> registerUser({
     required String telephone,
     required String password,
     required String name,
@@ -66,20 +66,34 @@ class UserService {
         await _firestore.collection('users').doc(telephone).get();
 
     if (userDoc.exists) {
-      throw Exception('This telephone number is already registered.');
+      return 'This telephone number is already registered.';
     }
 
-    // If not, save the user data
-    await _firestore.collection('users').doc(telephone).set({
-      'telephone': telephone,
-      'password': password,
-      'name': name,
-      'description': description,
-      'location': location,
-      'profileImageUrl': "profileImage",
-    });
+    // Upload the profile image first if it exists
+    String? profileImageUrl;
+    if (profileImage != null) {
+      profileImageUrl = await _firebaseService.uploadImage(
+          profileImage, 'profile_images/$telephone');
+      if (profileImageUrl == null) {
+        return "Failed to upload profile image.";
+      }
+    } else {
+      return "Please upload a profile image";
+    }
+
+    // Save the user data with the uploaded image URL
+    try {
+      await _firestore.collection('users').doc(telephone).set({
+        'telephone': telephone,
+        'password': password,
+        'name': name,
+        'description': description,
+        'location': location,
+        'profileImageUrl': profileImageUrl,
+      });
+      return 'User registered successfully';
+    } catch (e) {
+      return 'Failed to register user: ${e.toString()}';
+    }
   }
-
-
- 
 }

@@ -1,19 +1,16 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/detail.dart';
 import 'package:quite_courier/widget/drawer.dart';
-import 'package:quite_courier/widget/status.dart';
 
 class SenderOrderDetail extends StatefulWidget {
   final String orderId; // Define orderId as a required parameter.
 
-  const SenderOrderDetail({required this.orderId, Key? key}) : super(key: key);
+  const SenderOrderDetail({required this.orderId, super.key});
 
   @override
   State<SenderOrderDetail> createState() => _SenderOrderDetailState();
@@ -29,7 +26,7 @@ class _SenderOrderDetailState extends State<SenderOrderDetail> {
     int currentStep = order['status'].index; // กำหนดค่าเริ่มต้นตามที่คุณต้องการ
 
      return Scaffold(
-      appBar: CustomAppBar(),
+      appBar: const CustomAppBar(),
       drawer: const MyDrawer(),
       body: OrderDetailContent(order: order, currentStep: currentStep, userType: UserType.user,),
     );

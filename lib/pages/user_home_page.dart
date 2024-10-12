@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/sender_list_view_page.dart';
-import 'package:quite_courier/pages/sender_order_detail.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';

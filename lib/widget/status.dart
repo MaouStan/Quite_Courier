@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class DeliveryStatusTracker extends StatelessWidget {
   final int currentStep;
 
-  const DeliveryStatusTracker({Key? key, required this.currentStep}) : super(key: key);
+  const DeliveryStatusTracker({super.key, required this.currentStep});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,7 @@ class DeliveryStatusTracker extends StatelessWidget {
 
   Widget _buildStepCircle(int step, IconData icon) {
     final isActive = step <= currentStep;
-    final color = isActive ? Color(0xFF412160) : Colors.grey.shade300;
+    final color = isActive ? const Color(0xFF412160) : Colors.grey.shade300;
 
     return Container(
       width: 50,
@@ -77,7 +77,7 @@ class DeliveryStatusTracker extends StatelessWidget {
     return Expanded(
       child: Container(
         height: 2, // ความสูงของเส้น
-        color: step < currentStep ? Color(0xFF412160) : Colors.grey.shade300,
+        color: step < currentStep ? const Color(0xFF412160) : Colors.grey.shade300,
       ),
     );
   }

@@ -1,8 +1,6 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
-import 'package:quite_courier/pages/sender_order_detail.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
@@ -27,8 +25,8 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
-      drawer: MyDrawer(),
+      appBar: const CustomAppBar(),
+      drawer: const MyDrawer(),
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -71,7 +69,7 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
         height: 80,
         child: FloatingActionButton(
           onPressed: () {
-            Get.to(() => UserSendOrder());
+            Get.to(() => const UserSendOrder());
           },
           backgroundColor: const Color(0xFFE2E0E0),
           shape: const CircleBorder(),

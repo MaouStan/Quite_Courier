@@ -1,8 +1,6 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
@@ -58,7 +56,7 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
                     Text('สิ่งที่คุณส่ง :'),
                   ],
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 OrderListView(useIncomingData: true,),
               ],
             ),

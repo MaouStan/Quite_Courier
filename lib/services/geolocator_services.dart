@@ -1,10 +1,11 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
 class GeolocatorServices {
   static Future<bool> checkPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         return false;
       }
@@ -12,8 +13,8 @@ class GeolocatorServices {
     return true;
   }
 
-  static Future<Position> getCurrentLocation() async {
+  static Future<LatLng> getCurrentLocation() async {
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    return position;
+    return LatLng(position.latitude, position.longitude);
   }
 }

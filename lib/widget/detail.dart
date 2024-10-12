@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/widget/status.dart';
 
@@ -16,8 +15,8 @@ class OrderDetailContent extends StatelessWidget {
     required this.order,
     required this.currentStep,
     required this.userType,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

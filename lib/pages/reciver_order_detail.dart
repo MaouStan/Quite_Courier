@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/widget/appbar.dart';
@@ -10,7 +9,7 @@ import 'package:quite_courier/widget/drawer.dart';
 class ReciverOrderDetail extends StatefulWidget {
   final String orderId; // Define orderId as a required parameter.
 
-  const ReciverOrderDetail({required this.orderId, Key? key}) : super(key: key);
+  const ReciverOrderDetail({required this.orderId, super.key});
 
   @override
   State<ReciverOrderDetail> createState() => _ReciverOrderDetailState();

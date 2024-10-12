@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
@@ -44,7 +43,7 @@ class _RiderHistoryState extends State<RiderHistoryPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 12.0,),
+              const SizedBox(height: 12.0,),
               OrderListView(useIncomingData : true, useCompleategData : true),
             ],
           ),

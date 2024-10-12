@@ -219,8 +219,8 @@ class RouteModeHandler extends MapModeHandler {
       }
       try {
         allowUpdate = false;
-        Position myPos = await GeolocatorServices.getCurrentLocation();
-        myPosition = LatLng(myPos.latitude, myPos.longitude);
+        LatLng myPos = await GeolocatorServices.getCurrentLocation();
+        myPosition = myPos;
         dev.log('${DateTime.now()} Updated positions');
 
         try {
@@ -389,9 +389,9 @@ class TracksModeHandler extends MapModeHandler {
   void _initializePositions() async {
     dev.log('Initializing TracksModeHandler positions');
     try {
-      Position myPos = await GeolocatorServices.getCurrentLocation();
+      LatLng myPos = await GeolocatorServices.getCurrentLocation();
       allowUpdate = false;
-      myPosition = LatLng(myPos.latitude, myPos.longitude);
+      myPosition = myPos;
       _isLoading = false; // Initial load complete
       onUpdate();
       dev.log('Initialized positions');
@@ -412,8 +412,8 @@ class TracksModeHandler extends MapModeHandler {
       }
       allowUpdate = false;
       try {
-        Position myPos = await GeolocatorServices.getCurrentLocation();
-        myPosition = LatLng(myPos.latitude, myPos.longitude);
+        LatLng myPos = await GeolocatorServices.getCurrentLocation();
+        myPosition = myPos;
         Map<String, LatLng> riderPos = await UserService.fetchRiderPositions(
             riderIds); // {{ edit_9: Use UserService }}
         riderPositions = riderPos;
@@ -455,6 +455,7 @@ class MapPage extends StatefulWidget {
   final List<String>? riderIds;
   final bool focusOnRider;
   final LatLng? orderPosition;
+  final LatLng? selectedPosition;
 
   const MapPage(
       {super.key,
@@ -462,14 +463,15 @@ class MapPage extends StatefulWidget {
       this.riderId,
       this.riderIds,
       this.focusOnRider = false,
-      this.orderPosition});
+      this.orderPosition,
+      this.selectedPosition});
 
   @override
   _MapPageState createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
-  late LatLng _selectedPosition = const LatLng(0.0, 0.0);
+  late LatLng _selectedPosition;
   LatLng? _initialPosition;
   bool _isLoading = true;
   String? _error;
@@ -482,6 +484,7 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     _determinePosition();
+    _selectedPosition = widget.selectedPosition ?? const LatLng(0.0, 0.0);
     modeHandler =
         _getModeHandler(widget.mode, widget.focusOnRider, widget.orderPosition);
   }
@@ -505,8 +508,10 @@ class _MapPageState extends State<MapPage> {
       if (!_isDisposed) {
         setState(() {
           _initialPosition = LatLng(position.latitude, position.longitude);
-          _selectedPosition =
-              _initialPosition!; // Ensure _selectedPosition is set
+          if (widget.selectedPosition == null) {
+            _selectedPosition =
+                _initialPosition!; // Ensure _selectedPosition is set
+          }
           _isLoading = false;
         });
       }

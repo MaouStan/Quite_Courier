@@ -22,6 +22,7 @@ class OrderData {
   String senderAddress;
   String receiverAddress;
   OrderState state;
+  DateTime createdAt = DateTime.now();
 
   OrderData({
     this.riderId = '',
@@ -41,6 +42,6 @@ class OrderData {
 
   @override
   String toString() {
-    return 'OrderData(senderId: $senderId, receiverId: $receiverId, nameOrder: $nameOrder, orderPhoto: $orderPhoto, riderOrderPhoto1: $riderOrderPhoto1, riderOrderPhoto2: $riderOrderPhoto2, description: $description, senderLocation: $senderLocation, receiverLocation: $receiverLocation, senderAddress: $senderAddress, receiverAddress: $receiverAddress, state: $state)';
+    return 'OrderData(senderId: $senderId, receiverId: $receiverId, nameOrder: $nameOrder, orderPhoto: $orderPhoto, riderOrderPhoto1: $riderOrderPhoto1, riderOrderPhoto2: $riderOrderPhoto2, description: $description, senderLocation: $senderLocation, receiverLocation: $receiverLocation, senderAddress: $senderAddress, receiverAddress: $receiverAddress, state: $state, createdAt: $createdAt)';
   }
 }
