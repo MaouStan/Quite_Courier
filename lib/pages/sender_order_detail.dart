@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
@@ -35,10 +37,9 @@ class _SenderOrderDetailState extends State<SenderOrderDetail> {
 
           final order = snapshot.data!;
           int currentStep = order.state.index;
-
           return OrderDetailContent(
-            order: order,
-            currentStep: currentStep,
+            orderId: order.documentId,
+         
             userType: UserType.user,
           );
         },

@@ -50,81 +50,84 @@ class _UserHomePageState extends State<UserHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(),
-      drawer: const MyDrawer(),
-      body: FutureBuilder<Map<String, List<OrderDataRes>>>(
-        future: fetchOrders(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final sentOrders = snapshot.data!['sentOrders']!;
-          final receivedOrders = snapshot.data!['receivedOrders']!;
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              setState(() {});
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    _buildUserInfoCard(
-                        sentOrders
-                            .where(
-                                (order) => order.state != OrderState.completed)
-                            .toList(),
-                        receivedOrders
-                            .where(
-                                (order) => order.state != OrderState.completed)
-                            .toList()),
-                    const SizedBox(height: 12),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                        onPressed: () {
-                          Get.to(() => MapPage(
-                                mode: MapMode.tracks,
-                                riderTelephones: sentOrders
-                                    .where((order) =>
-                                        (order.state == OrderState.accepted ||
-                                            order.state ==
-                                                OrderState.onDelivery))
-                                    .map((order) => order.riderTelephone)
-                                    .toSet()
-                                    .toList(),
-                              ));
-                        },
-                        child: const Text('Track All')),
-                    _buildSentOrdersSection(sentOrders
-                        .where((order) => order.state != OrderState.completed)
-                        .toList()),
-                    _buildReceivedOrdersSection(receivedOrders
-                        .where((order) => order.state != OrderState.completed)
-                        .toList()),
-                  ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: const CustomAppBar(),
+        drawer: const MyDrawer(),
+        body: FutureBuilder<Map<String, List<OrderDataRes>>>(
+          future: fetchOrders(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            final sentOrders = snapshot.data!['sentOrders']!;
+            final receivedOrders = snapshot.data!['receivedOrders']!;
+      
+            return RefreshIndicator(
+              onRefresh: () async {
+                setState(() {});
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      _buildUserInfoCard(
+                          sentOrders
+                              .where(
+                                  (order) => order.state != OrderState.completed)
+                              .toList(),
+                          receivedOrders
+                              .where(
+                                  (order) => order.state != OrderState.completed)
+                              .toList()),
+                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                          onPressed: () {
+                            Get.to(() => MapPage(
+                                  mode: MapMode.tracks,
+                                  riderTelephones: sentOrders
+                                      .where((order) =>
+                                          (order.state == OrderState.accepted ||
+                                              order.state ==
+                                                  OrderState.onDelivery))
+                                      .map((order) => order.riderTelephone)
+                                      .toSet()
+                                      .toList(),
+                                ));
+                          },
+                          child: const Text('Track All')),
+                      _buildSentOrdersSection(sentOrders
+                          .where((order) => order.state != OrderState.completed)
+                          .toList()),
+                      _buildReceivedOrdersSection(receivedOrders
+                          .where((order) => order.state != OrderState.completed)
+                          .toList()),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: SizedBox(
-        width: 80,
-        height: 80,
-        child: FloatingActionButton(
-          onPressed: () {
-            log("กดปุ่ม +");
-            Get.to(() => const UserSendOrder());
+            );
           },
-          backgroundColor: const Color(0xFFE2E0E0),
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, size: 50),
+        ),
+        floatingActionButton: SizedBox(
+          width: 80,
+          height: 80,
+          child: FloatingActionButton(
+            onPressed: () {
+              log("กดปุ่ม +");
+              Get.to(() => const UserSendOrder());
+            },
+            backgroundColor: const Color(0xFFE2E0E0),
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, size: 50),
+          ),
         ),
       ),
     );

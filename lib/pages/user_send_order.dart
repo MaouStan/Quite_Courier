@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -52,12 +54,49 @@ class _UserSendOrderState extends State<UserSendOrder>
 
   bool _isLoading = true;
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StreamSubscription<QuerySnapshot>? _usersSubscription;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _searchController.addListener(_filterUsers);
-    _fetchOtherUsers();
+    _startListeningToUsers();
+  }
+
+  void _startListeningToUsers() {
+    final UserController userController = Get.find<UserController>();
+    _usersSubscription = _firestore
+        .collection('users')
+        .where('telephone',
+            isNotEqualTo: userController.userData.value.telephone)
+        .snapshots()
+        .listen((snapshot) {
+      setState(() {
+        _users.clear();
+        for (var doc in snapshot.docs) {
+          _users.add(UserData.fromJson(doc.data() as Map<String, dynamic>));
+        }
+        _filterUsers();
+      });
+    });
+  }
+
+  void _filterUsers() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredUsers = _users.where((user) {
+        return user.telephone.contains(query) ||
+            user.name.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _usersSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchOtherUsers() async {
@@ -82,16 +121,6 @@ class _UserSendOrderState extends State<UserSendOrder>
         _isLoading = false;
       });
     }
-  }
-
-  void _filterUsers() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredUsers = _users.where((user) {
-        return user.telephone.contains(query) ||
-            user.name.toLowerCase().contains(query);
-      }).toList();
-    });
   }
 
   void _loadReceiverData(UserData user) {
@@ -361,8 +390,8 @@ class _UserSendOrderState extends State<UserSendOrder>
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+            child: _filteredUsers.isEmpty
+                ? const Center(child: Text('No users found'))
                 : ListView.builder(
                     itemCount: _filteredUsers.length,
                     itemBuilder: (context, index) {
