@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,8 +31,12 @@ class RiderHomePage extends StatefulWidget {
 class _RiderHomePageState extends State<RiderHomePage> {
   final RiderController stateController = Get.find<RiderController>();
   RxList<OrderDataRes> pendingOrders = <OrderDataRes>[].obs;
-  Timer? _timer;
   final AuthService _authService = AuthService();
+  late StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>
+      _orderSubscription;
+  late StreamSubscription<QuerySnapshot<Map<String, dynamic>>>
+      _pendingOrdersSubscription;
+  // Timer? _timer;
 
   @override
   void initState() {
@@ -41,7 +46,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _orderSubscription.cancel();
+    _pendingOrdersSubscription.cancel();
     super.dispose();
   }
 
@@ -51,15 +57,45 @@ class _RiderHomePageState extends State<RiderHomePage> {
     stateController.currentOrder.value =
         myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
+
     if (stateController.currentOrder.value != null) {
-      await _fetchPendingOrders();
+      _setupOrderListener(stateController.currentOrder.value!.documentId);
     }
 
-    // Start periodic polling
-    _timer = Timer.periodic(Duration(seconds: 3), (timer) {
-      if (stateController.currentOrder.value != null) {
-        _fetchPendingOrders();
+    _setupPendingOrdersListener();
+
+    // // Start periodic polling
+    // _timer = Timer.periodic(Duration(seconds: 3), (timer) {
+    //   if (stateController.currentOrder.value != null) {
+    //     _fetchPendingOrders();
+    //   }
+    // });
+  }
+
+  void _setupOrderListener(String orderId) {
+    _orderSubscription = FirebaseFirestore.instance
+        .collection('orders')
+        .doc(orderId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        final updatedOrder =
+            OrderDataRes.fromJson(snapshot.data()!, snapshot.id);
+        stateController.currentOrder.value = updatedOrder;
+        setState(() {});
       }
+    });
+  }
+
+  void _setupPendingOrdersListener() {
+    _pendingOrdersSubscription = FirebaseFirestore.instance
+        .collection('orders')
+        .where('state', isEqualTo: OrderState.pending.name)
+        .snapshots()
+        .listen((snapshot) {
+      pendingOrders.value = snapshot.docs
+          .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
+          .toList();
     });
   }
 
@@ -76,24 +112,27 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(userType: UserType.rider),
-      drawer: const MyDrawer(userType: UserType.rider),
-      body: RefreshIndicator(
-        onRefresh: _fetchPendingOrders,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfileSection(),
-              const SizedBox(height: 16),
-              Expanded(
-                child: Obx(() => stateController.currentOrder.value == null
-                    ? _buildPendingOrdersSection()
-                    : _buildSendingOrderSection()),
-              ),
-            ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: const CustomAppBar(userType: UserType.rider),
+        drawer: const MyDrawer(userType: UserType.rider),
+        body: RefreshIndicator(
+          onRefresh: _fetchPendingOrders,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileSection(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: Obx(() => stateController.currentOrder.value == null
+                      ? _buildPendingOrdersSection()
+                      : _buildSendingOrderSection()),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -166,85 +205,90 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Widget _buildOrderCard(OrderDataRes order) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFF4b45c2), width: 2),
-      ),
-      color: const Color(0xFF9195f4),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  order.nameOrder,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: order.state == OrderState.pending
-                        ? const Color(0xFF4CAF50)
-                        : Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => RiderOrderDetail(orderId: order.documentId));
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0xFF4b45c2), width: 2),
+        ),
+        color: const Color(0xFF9195f4),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    order.nameOrder,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  onPressed: () => order.state == OrderState.pending
-                      ? _acceptOrder(order)
-                      : _cancelOrder(order),
-                  child: Text(
-                      order.state == OrderState.pending ? 'รับงาน' : 'ยกเลิก',
-                      style: const TextStyle(color: Colors.white)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Image.network(
-                  order.orderPhoto,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.error),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ผู้รับ: ${order.receiverName}',
-                        style: const TextStyle(color: Colors.white),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: order.state == OrderState.pending
+                          ? const Color(0xFF4CAF50)
+                          : Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      Text(
-                        'ต้นทาง: ${order.senderAddress}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      Text(
-                        'ปลายทาง: ${order.receiverAddress}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
+                    ),
+                    onPressed: () => order.state == OrderState.pending
+                        ? _acceptOrder(order)
+                        : _cancelOrder(order),
+                    child: Text(
+                        order.state == OrderState.pending ? 'รับงาน' : 'ยกเลิก',
+                        style: const TextStyle(color: Colors.white)),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Image.network(
+                    order.orderPhoto,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.error),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ผู้รับ: ${order.receiverName}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Text(
+                          'ต้นทาง: ${order.senderAddress}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Text(
+                          'ปลายทาง: ${order.receiverAddress}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -543,17 +587,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
     return GestureDetector(
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => MapPage(
-        //       mode: MapMode.route,
-        //       riderTelephone: stateController.currentOrder.value!.riderTelephone,
-        //       orderPosition: orderPosition,
-        //       focusOnRider: true,
-        //     ),
-        //   ),
-        // );
         Get.to(() => MapPage(
               mode: MapMode.route,
               riderTelephone:
@@ -569,9 +602,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
           riderTelephone: stateController.currentOrder.value!.riderTelephone,
           orderPosition: orderPosition,
           focusOnRider: true,
-          update: false,
+          update: true, // Set this to true for real-time updates
         ),
-        // child: Icon(Icons.map, size: 200),
       ),
     );
   }

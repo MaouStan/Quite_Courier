@@ -25,6 +25,7 @@ class OrderDataRes {
   OrderState state;
   DateTime createdAt;
 
+
   OrderDataRes({
     required this.documentId, // Added to constructor
     required this.riderName,
@@ -111,4 +112,8 @@ class OrderDataRes {
         ),
         createdAt: DateTime.parse(json['createdAt']),
       );
+
+
+
+      
 }
