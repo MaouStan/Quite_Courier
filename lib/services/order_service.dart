@@ -64,14 +64,17 @@ class OrderService {
 
       // fetch profile image getImageUrl with riderTelephone, senderTelephone, receiverTelephone
       order.riderProfileImage = await FirebaseService()
-          .getImageUrl('/profile_images/${order.riderTelephone}')
-          .catchError((error) => null) ?? '';
+              .getImageUrl('/profile_images/${order.riderTelephone}')
+              .catchError((error) => null) ??
+          '';
       order.senderProfileImage = await FirebaseService()
-          .getImageUrl('/profile_images/${order.senderTelephone}')
-          .catchError((error) => null) ?? '';
+              .getImageUrl('/profile_images/${order.senderTelephone}')
+              .catchError((error) => null) ??
+          '';
       order.receiverProfileImage = await FirebaseService()
-          .getImageUrl('/profile_images/${order.receiverTelephone}')
-          .catchError((error) => null) ?? '';
+              .getImageUrl('/profile_images/${order.receiverTelephone}')
+              .catchError((error) => null) ??
+          '';
 
       return order;
     } catch (e) {
@@ -189,28 +192,86 @@ class OrderService {
     }
   }
 
-  static Future<bool> updateOrder(OrderDataRes order, {File? image1, File? image2}) async {
+  static Future<bool> updateOrder(OrderDataRes order,
+      {File? image1, File? image2, OrderState? newState}) async {
     try {
       FirebaseFirestore firestore = FirebaseFirestore.instance;
       Map<String, dynamic> updateData = order.toJson();
 
+      // เพิ่มการอัพเดต state ถ้ามีการระบุ newState
+      if (newState != null) {
+        updateData['state'] = newState.name; // แปลง enum เป็น string
+      }
+
       if (image1 != null || image2 != null) {
         String? imageUrl1, imageUrl2;
         if (image1 != null) {
-          imageUrl1 = await FirebaseService().uploadImage(image1, 'order_images/${order.documentId}/2');
+          imageUrl1 = await FirebaseService()
+              .uploadImage(image1, 'order_images/${order.documentId}/2');
           if (imageUrl1 != null) updateData['riderOrderPhoto1'] = imageUrl1;
         }
         if (image2 != null) {
-          imageUrl2 = await FirebaseService().uploadImage(image2, 'order_images/${order.documentId}/3');
+          imageUrl2 = await FirebaseService()
+              .uploadImage(image2, 'order_images/${order.documentId}/3');
           if (imageUrl2 != null) updateData['riderOrderPhoto2'] = imageUrl2;
         }
       }
 
-      await firestore.collection('orders').doc(order.documentId).update(updateData);
+      await firestore
+          .collection('orders')
+          .doc(order.documentId)
+          .update(updateData);
+
+      // อัพเดต state ใน local object ด้วย
+      if (newState != null) {
+        order.state = newState;
+        log('Sussesses');
+      }
       return true;
     } catch (e) {
       log('Error updating order state: $e');
       return false;
     }
   }
+
+ static Future<OrderDataRes> getOrderDetails(String orderId) async {
+  try {
+    DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance
+        .collection('orders')
+        .doc(orderId)
+        .get();
+
+    if (!orderSnapshot.exists) {
+      throw Exception('Order not found');
+    }
+
+    Map<String, dynamic> orderData =
+        orderSnapshot.data() as Map<String, dynamic>;
+
+    String riderTelephone = orderData['riderTelephone'];
+    String senderTelephone = orderData['senderTelephone'];
+    String receiverTelephone = orderData['receiverTelephone'];
+
+    // Fetch Rider, Sender, and Receiver Profile Images
+    String riderProfileImage = await _fetchUserProfileImage('riders', riderTelephone);
+    String senderProfileImage = await _fetchUserProfileImage('users', senderTelephone);
+    String receiverProfileImage = await _fetchUserProfileImage('users', receiverTelephone);
+
+    return OrderDataRes.fromJson(orderData, orderId)
+      ..riderProfileImage = riderProfileImage
+      ..senderProfileImage = senderProfileImage
+      ..receiverProfileImage = receiverProfileImage;
+
+  } catch (e) {
+    throw Exception('Failed to get order details: $e');
+  }
+}
+
+static Future<String> _fetchUserProfileImage(String collection, String telephone) async {
+  DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection(collection).doc(telephone).get();
+  return snapshot.exists && snapshot.data() != null
+      ? (snapshot.data() as Map<String, dynamic>)['profileImageUrl'] ?? ''
+      : '';
+}
+
 }

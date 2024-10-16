@@ -3,10 +3,13 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/models/rider_data.dart';
 
 class UserService {
   // {{ edit_12: Define fetchRiderPosition method }}
   static Future<LatLng> fetchRiderPosition(String riderTelephone) async {
+
+    
     // Simulate a network call to fetch rider's position
     // Replace this with your actual database/API call
     // final response =
@@ -59,4 +62,6 @@ class UserService {
     dev.log('positions: $positions');
     return positions;
   }
+
+
 }

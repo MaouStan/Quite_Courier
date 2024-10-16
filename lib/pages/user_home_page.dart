@@ -6,6 +6,7 @@ import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_people.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
@@ -218,7 +219,7 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
         OrderListView(
-            useIncomingData: false, orders: sentOrders, limit: orderLimit),
+            useIncomingData: false, orders: sentOrders, limit: orderLimit, userType: UserType.user,),
       ],
     );
   }
@@ -246,7 +247,7 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
         OrderListView(
-            useIncomingData: true, orders: receivedOrders, limit: orderLimit),
+            useIncomingData: true, orders: receivedOrders, limit: orderLimit, userType: UserType.user,),
       ],
     );
   }

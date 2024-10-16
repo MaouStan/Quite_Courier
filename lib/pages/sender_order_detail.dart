@@ -38,7 +38,7 @@ class _SenderOrderDetailState extends State<SenderOrderDetail> {
           final order = snapshot.data!;
           int currentStep = order.state.index;
           return OrderDetailContent(
-            orderId: order.documentId,
+            order: order,
          
             userType: UserType.user,
           );

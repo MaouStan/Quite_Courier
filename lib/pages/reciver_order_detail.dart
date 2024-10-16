@@ -37,7 +37,7 @@ class _ReciverOrderDetailState extends State<ReciverOrderDetail> {
           int currentStep = order.state.index;
 
           return OrderDetailContent(
-            orderId: order.documentId,
+            order: order,
           
             userType: UserType.user,
           );

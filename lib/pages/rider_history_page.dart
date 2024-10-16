@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
@@ -18,18 +19,25 @@ class RiderHistoryPage extends StatefulWidget {
 
 class _RiderHistoryState extends State<RiderHistoryPage> {
   final RiderController stateController = Get.find<RiderController>();
-  List<OrderDataRes> orders = [];
-  Future<void>? futureOrders;
+  final ordersStream = Rx<List<OrderDataRes>>([]);
 
   @override
   void initState() {
     super.initState();
-    futureOrders = loadOrders();
+    _subscribeToOrders();
   }
 
-  Future<void> loadOrders() async {
-    orders = await OrderService.fetchOrderWithRiderAndState(
-        stateController.riderData.value.telephone, OrderState.completed);
+  void _subscribeToOrders() {
+    FirebaseFirestore.instance
+        .collection('orders')
+        .where('riderTelephone', isEqualTo: stateController.riderData.value.telephone)
+        .where('state', isEqualTo: OrderState.completed.toString())
+        .snapshots()
+        .listen((snapshot) {
+      ordersStream.value = snapshot.docs
+          .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
+          .toList();
+    });
   }
 
   @override
@@ -42,7 +50,7 @@ class _RiderHistoryState extends State<RiderHistoryPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Container(
+              Obx(() => Container(
                 decoration: BoxDecoration(
                     color: const Color(0xFFF0EAE2),
                     borderRadius: BorderRadius.circular(12)),
@@ -52,7 +60,7 @@ class _RiderHistoryState extends State<RiderHistoryPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Text(
-                        'ส่งของแล้ว\t\t\t${orders.length}',
+                        'ส่งของแล้ว\t\t\t${ordersStream.value.length}',
                         style: TextStyle(
                             fontSize: Get.textTheme.titleMedium!.fontSize,
                             color: Colors.black,
@@ -61,11 +69,15 @@ class _RiderHistoryState extends State<RiderHistoryPage> {
                     ],
                   ),
                 ),
-              ),
+              )),
               const SizedBox(
                 height: 12.0,
               ),
-              OrderListView(useIncomingData: false),
+              Obx(() => OrderListView(
+                useIncomingData: true,
+                userType: UserType.rider,
+                orders: ordersStream.value,
+              )),
             ],
           ),
         ),

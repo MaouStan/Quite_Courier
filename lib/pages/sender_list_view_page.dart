@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_people.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
@@ -90,7 +91,7 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    OrderListView(useIncomingData: false, orders: sentOrders),
+                    OrderListView(useIncomingData: false, orders: sentOrders, userType: UserType.user,),
                   ],
                 ),
               ),
