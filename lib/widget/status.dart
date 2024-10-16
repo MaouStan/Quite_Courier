@@ -17,13 +17,13 @@ class DeliveryStatusTracker extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildStepCircle(0, Icons.document_scanner),
+                  _buildStepCircle(0,  Icons.directions_bike),
                   _buildConnector(0),
-                  _buildStepCircle(1, Icons.assignment_turned_in),
+                  _buildStepCircle(1, Icons.event),
                   _buildConnector(1),
-                  _buildStepCircle(2, Icons.delivery_dining),
+                  _buildStepCircle(2, Icons.local_shipping),
                   _buildConnector(2),
-                  _buildStepCircle(3, Icons.check_circle_outline),
+                  _buildStepCircle(3, Icons.check_circle),
                 ],
               ),
               const SizedBox(height: 8), // เพิ่มช่องว่างระหว่างวงกลมกับ label
@@ -48,11 +48,11 @@ class DeliveryStatusTracker extends StatelessWidget {
 
   Widget _buildStepCircle(int step, IconData icon) {
     final isActive = step <= currentStep;
-    final color = isActive ? const Color(0xFF412160) : Colors.grey.shade300;
+    final color = isActive ? Colors.purple : Colors.grey.shade300;
 
     return Container(
-      width: 50,
-      height: 50,
+      width: 45,
+      height: 45,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
@@ -77,7 +77,7 @@ class DeliveryStatusTracker extends StatelessWidget {
     return Expanded(
       child: Container(
         height: 2, // ความสูงของเส้น
-        color: step < currentStep ? const Color(0xFF412160) : Colors.grey.shade300,
+        color: step < currentStep ? Colors.purple : Colors.grey.shade300,
       ),
     );
   }

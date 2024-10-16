@@ -3,31 +3,34 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
+import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/widget/loadDots.dart';
 import 'package:quite_courier/widget/status.dart';
 
 class OrderDetailContent extends StatelessWidget {
   final UserType userType;
-  final String orderId;
+  final OrderDataRes order;
 
   const OrderDetailContent({
-    required this.orderId,
     required this.userType,
+    required this.order,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Assuming userController is needed later, otherwise you can remove this line.
     final userController = Get.find<UserController>();
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('orders')
-          .doc(orderId)
+          .doc(order.documentId) // Use the orderId from the passed order object
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -43,8 +46,9 @@ class OrderDetailContent extends StatelessWidget {
         }
 
         final orderData = snapshot.data!.data() as Map<String, dynamic>;
-        final order = OrderDataRes.fromJson(orderData, snapshot.data!.id);
-        final currentStep = _getStepFromOrderState(order.state);
+        final updatedOrder =
+            OrderDataRes.fromJson(orderData, snapshot.data!.id);
+        final currentStep = _getStepFromOrderState(updatedOrder.state);
 
         return SingleChildScrollView(
           child: Padding(
@@ -91,11 +95,14 @@ class OrderDetailContent extends StatelessWidget {
                       color: const Color(0xFF202442),
                     ),
                   ),
-                  Text(
-                    order.nameOrder,
-                    style: TextStyle(
-                      fontSize: Get.textTheme.titleLarge!.fontSize,
-                      color: const Color(0xFF202442),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      order.nameOrder,
+                      style: TextStyle(
+                        fontSize: Get.textTheme.titleLarge!.fontSize,
+                        color: const Color(0xFF202442),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -151,13 +158,20 @@ class OrderDetailContent extends StatelessWidget {
                       indent: 16,
                       endIndent: 16,
                     ),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 30,
                         ),
-                        Text('ที่อยู่ : '),
+                        Text(
+                          'ที่อยู่ : ',
+                          style: TextStyle(
+                              fontSize: Get.textTheme.titleMedium!.fontSize,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple.shade600),
+                        ),
+                        Text(order.senderAddress)
                       ],
                     )
                   ],
@@ -175,7 +189,7 @@ class OrderDetailContent extends StatelessWidget {
   }
 
   Widget _buildRiderDetails(OrderDataRes order) {
-    if (order.riderName == null || order.riderName!.isEmpty) {
+    if (order.riderName == null || order.riderName.isEmpty) {
       return Container(
         decoration: const BoxDecoration(color: Colors.white),
         padding: const EdgeInsets.all(12.0),
@@ -192,7 +206,7 @@ class OrderDetailContent extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 30,
-            backgroundImage: NetworkImage(order.riderProfileImage ?? ''),
+            backgroundImage: NetworkImage(order.riderProfileImage ?? ""),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -215,18 +229,38 @@ class OrderDetailContent extends StatelessWidget {
   }
 
   Widget _buildDeliveryImage(OrderDataRes order) {
-    return Center(
-      child: Container(
-        width: 300,
-        height: 190,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFA77C0E), width: 2),
-          borderRadius: BorderRadius.circular(10),
+    if (order.state.index == 2 || order.state.index == 3) {
+      return Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildImageContainer(order.riderOrderPhoto1),
+            const SizedBox(width: 10), // ระยะห่างระหว่างรูปภาพ
+            _buildImageContainer(
+                order.riderOrderPhoto2 ?? ''), // สมมติว่ามี field deliveryPhoto
+          ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.network(order.orderPhoto, fit: BoxFit.cover),
-        ),
+      );
+    } else {
+      return Center(
+        child: _buildImageContainer(order.orderPhoto),
+      );
+    }
+  }
+
+  Widget _buildImageContainer(String imageUrl) {
+    return Container(
+      width: 160, // ปรับขนาดลงเพื่อให้พอดีกับการแสดงสองรูป
+      height: 160,
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFA77C0E), width: 2),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: imageUrl.isNotEmpty
+            ? Image.network(imageUrl, fit: BoxFit.cover)
+            : const Center(child: Text('No Image')),
       ),
     );
   }
@@ -290,28 +324,49 @@ class OrderDetailContent extends StatelessWidget {
             const SizedBox(
               width: 30,
             ),
-            Text('ที่อยู่ : ', style: TextStyle(fontSize: Get.textTheme.titleMedium!.fontSize, fontWeight: FontWeight.bold, color: Colors.purple.shade600),),
-            Text(order.receiverAddress, style: const TextStyle(fontStyle: FontStyle.italic),)
+            Text(
+              'ที่อยู่ : ',
+              style: TextStyle(
+                  fontSize: Get.textTheme.titleMedium!.fontSize,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple.shade600),
+            ),
+            Text(
+              order.receiverAddress,
+            )
           ],
         ));
   }
 
   Widget _buildMapButton(OrderDataRes order) {
+    LatLng orderPosition;
+    if (order.state == OrderState.accepted) {
+      orderPosition = order.senderLocation;
+    } else if (order.state == OrderState.onDelivery) {
+      orderPosition = order.receiverLocation;
+    } else {
+      orderPosition = order.receiverLocation;
+    }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: SizedBox(
-        height: 65,
-        width: 200,
+        height: 45,
+        width: 150,
         child: ElevatedButton(
           onPressed: () {
-            log('map');
+            Get.to(() => MapPage(
+                  mode: MapMode.route,
+                  riderTelephone: order.riderTelephone,
+                  orderPosition: orderPosition,
+                  focusOnRider: true,
+                ));
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 15),
+            padding: const EdgeInsets.symmetric(vertical: 2),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -322,7 +377,7 @@ class OrderDetailContent extends StatelessWidget {
                 'ดูตำแหน่ง',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: Get.textTheme.headlineSmall!.fontSize,
+                  fontSize: Get.textTheme.titleMedium!.fontSize,
                 ),
               ),
             ],

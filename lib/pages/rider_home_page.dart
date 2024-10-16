@@ -368,7 +368,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
     bool success = await OrderService.updateOrder(
         stateController.currentOrder.value!,
         image1: image1,
-        image2: image2);
+        image2: image2,
+        newState: newState);
 
     if (success) {
       stateController.currentOrder.value!.state = newState;
@@ -439,18 +440,87 @@ class _RiderHomePageState extends State<RiderHomePage> {
                         OrderState.accepted)
                       ElevatedButton(
                         onPressed: isWithinRange
-                            ? () => _updateOrderState(OrderState.onDelivery)
+                            ? () async {
+                                // แสดง AlertDialog เพื่อแจ้งเตือนให้ถ่ายรูป
+                                await showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('เริ่มการจัดส่ง'),
+                                      content: const Text(
+                                          'โปรดถ่ายรูปสินค้าก่อนเริ่มการจัดส่ง'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: const Text('ตกลง'),
+                                          onPressed: () async {
+                                            await _updateOrderState(
+                                                OrderState.onDelivery);
+                                            Get.to(() => RiderOrderDetail(
+                                                orderId: stateController
+                                                    .currentOrder
+                                                    .value!
+                                                    .documentId));
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }
                             : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                         child: const Text('Start Delivery'),
                       ),
                     if (stateController.currentOrder.value!.state ==
                         OrderState.onDelivery)
                       ElevatedButton(
                         onPressed: isWithinRange
-                            ? () => _updateOrderState(OrderState.completed)
+                            ? () {
+                                // แสดง dialog แจ้งเตือน
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text('แจ้งเตือน'),
+                                      content:
+                                          Text('โปรดถ่ายรูปยืนยันการส่งสินค้า'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(); // ปิด dialog เมื่อกดปุ่มยกเลิก
+                                          },
+                                          child: Text('ยกเลิก'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context)
+                                                .pop(); // ปิด dialog แล้วไปทำการอัปเดตสถานะคำสั่งซื้อ
+                                            _updateOrderState(OrderState
+                                                .completed); // เปลี่ยนสถานะคำสั่งซื้อ
+                                          },
+                                          child: Text('ยืนยัน'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              }
                             : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green, // สีพื้นหลังของปุ่ม
+                          foregroundColor: Colors.white, // สีของข้อความบนปุ่ม
+                        ),
                         child: const Text('Complete Order'),
-                      ),
+                      )
                   ],
                 ),
               ),
@@ -459,7 +529,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     'You must be within 20 meters of the ${stateController.currentOrder.value!.state == OrderState.accepted ? "pickup" : "delivery"} location to proceed.',
-                    style: TextStyle(color: Colors.red),
+                    style: const TextStyle(color: Colors.red),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -496,34 +566,44 @@ class _RiderHomePageState extends State<RiderHomePage> {
             ],
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildStatusItem(
-              icon: Icons.directions_bike,
-              label: 'รอ Rider\nรับงาน',
-              isActive: stateController.currentOrder.value!.state.index >=
-                  OrderState.pending.index,
-            ),
-            _buildStatusItem(
-              icon: Icons.event,
-              label: 'ไรเดอร์รับงานแล้วกำลังมาเอาของ',
-              isActive: stateController.currentOrder.value!.state.index >=
-                  OrderState.accepted.index,
-            ),
-            _buildStatusItem(
-              icon: Icons.local_shipping,
-              label: 'กำลังจัดส่ง',
-              isActive: stateController.currentOrder.value!.state.index >=
-                  OrderState.onDelivery.index,
-            ),
-            _buildStatusItem(
-              icon: Icons.check_circle,
-              label: 'ส่งแล้ว',
-              isActive: stateController.currentOrder.value!.state.index >=
-                  OrderState.completed.index,
-            ),
-          ],
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Flexible(
+                child: _buildStatusItem(
+                  icon: Icons.directions_bike,
+                  label: 'รอ Rider\nรับงาน',
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.pending.index,
+                ),
+              ),
+              Flexible(
+                child: _buildStatusItem(
+                  icon: Icons.event,
+                  label: 'ไรเดอร์รับงานแล้ว\nกำลังมาเอาของ',
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.accepted.index,
+                ),
+              ),
+              Flexible(
+                child: _buildStatusItem(
+                  icon: Icons.local_shipping,
+                  label: 'กำลังจัดส่ง',
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.onDelivery.index,
+                ),
+              ),
+              Flexible(
+                child: _buildStatusItem(
+                  icon: Icons.check_circle,
+                  label: 'ส่งแล้ว',
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.completed.index,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

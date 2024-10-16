@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/order_controller.dart';
@@ -18,14 +20,13 @@ class RiderOrderDetail extends StatefulWidget {
 }
 
 class _RiderOrderDetailState extends State<RiderOrderDetail> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(userType: UserType.rider,),
-      drawer: const MyDrawer(userType: UserType.rider,),
-      body: FutureBuilder<OrderDataRes?>(
-        future: OrderService.fetchOrderWithId(widget.orderId),
+      appBar: const CustomAppBar(userType: UserType.rider),
+      drawer: const MyDrawer(userType: UserType.rider),
+      body: FutureBuilder<OrderDataRes>( // Change this line
+        future: OrderService.getOrderDetails(widget.orderId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -35,15 +36,11 @@ class _RiderOrderDetailState extends State<RiderOrderDetail> {
             return const Center(child: Text('Order not found'));
           }
 
-          final order = snapshot.data!;
-          int currentStep = order.state.index;
-          return OrderDetailContent(
-            orderId: order.documentId,
-         
-            userType: UserType.rider,
-          );
+          final order = snapshot.data!; // Now this is of type OrderDataRes
+          
+          return OrderDetailContent(order: order, userType: UserType.rider,); // Pass the whole order object
         },
       ),
-    ); 
+    );
   }
 }

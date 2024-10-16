@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/reciver_order_detail.dart';
 import 'package:quite_courier/pages/sender_order_detail.dart';
@@ -11,10 +12,11 @@ import 'package:quite_courier/services/order_service.dart';
 
 class OrderListView extends StatelessWidget {
   final bool useIncomingData;
+  UserType userType;
   final int? limit;
   final List<OrderDataRes>? orders;
 
-  OrderListView({super.key, this.useIncomingData = false, this.limit, this.orders});
+  OrderListView({super.key, this.useIncomingData = false, this.limit, this.orders, required this.userType});
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_people.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
@@ -19,14 +21,14 @@ class RecieverListViewPage extends StatefulWidget {
 class _RecieverListViewPageState extends State<RecieverListViewPage> {
   final UserController userController = Get.find<UserController>();
 
-  Future<List<OrderDataRes>> fetchReceivedOrders() async {
-    try {
-      final orders = await OrderService.getOrdersByReceiver(userController.userData.value.telephone);
-      return orders;
-    } catch (e) {
-      print('Error fetching received orders: $e');
-      return []; // Return an empty list in case of error
-    }
+  Stream<List<OrderDataRes>> getReceivedOrdersStream() {
+    return FirebaseFirestore.instance
+        .collection('orders')
+        .where('receiverPhone', isEqualTo: userController.userData.value.telephone)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
+            .toList());
   }
 
   @override
@@ -34,8 +36,8 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
     return Scaffold(
       appBar: const CustomAppBar(),
       drawer: const MyDrawer(),
-      body: FutureBuilder<List<OrderDataRes>>(
-        future: fetchReceivedOrders(),
+      body: StreamBuilder<List<OrderDataRes>>(
+        stream: getReceivedOrdersStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -43,9 +45,10 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
-          final receivedOrders = snapshot.data!;
+          final receivedOrders = snapshot.data ?? [];
           return RefreshIndicator(
             onRefresh: () async {
+              // Refresh is not needed for realtime updates, but you can keep it if you want to force a refresh
               setState(() {});
             },
             child: SingleChildScrollView(
@@ -82,7 +85,7 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      OrderListView(useIncomingData: true, orders: receivedOrders),
+                      OrderListView(useIncomingData: true, orders: receivedOrders, userType: UserType.user,),
                     ],
                   ),
                 ),
@@ -93,6 +96,7 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
       ),
     );
   }
+
 
   Widget _buildStatItem(String label, int value) {
     return Row(
