@@ -76,18 +76,22 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       border: Border.all(color: Colors.white, width: 5),
                     ),
                     child: CircleAvatar(
-                        radius: 80,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage: _selectedImage != null
-                            ? FileImage(_selectedImage!) as ImageProvider
-                            : (userController.userData.value.profileImageUrl.isNotEmpty
-                                ? NetworkImage(userController.userData.value.profileImageUrl)
-                                : null),
-                        child: (_selectedImage == null && (userController.userData.value.profileImageUrl.isEmpty))
-                            ? const Icon(Icons.person, size: 80)
-                            : null,
-                      ),
+                      radius: 80,
+                      backgroundColor: Colors.grey[300],
+                      backgroundImage: _selectedImage != null
+                          ? FileImage(_selectedImage!) as ImageProvider
+                          : (userController
+                                  .userData.value.profileImageUrl.isNotEmpty
+                              ? NetworkImage(
+                                  userController.userData.value.profileImageUrl)
+                              : null),
+                      child: (_selectedImage == null &&
+                              (userController
+                                  .userData.value.profileImageUrl.isEmpty))
+                          ? const Icon(Icons.person, size: 80)
+                          : null,
                     ),
+                  ),
                   if (isEditMode)
                     Positioned(
                       bottom: 0,
@@ -166,6 +170,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             width: 32,
                           ),
                           onPressed: () async {
+                            // if mode edit
+                            if (!isEditMode) return;
                             LatLng? oldPostiion = _selectedPosition;
                             _selectedPosition = await Get.to(() => MapPage(
                                   mode: MapMode.select,
