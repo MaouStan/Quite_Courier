@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class Utils {
+  final ImagePicker _picker = ImagePicker();
+
   // Method to take a photo using the camera
   Future<File?> takePhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
       return File(pickedFile.path);
     }
@@ -15,8 +16,15 @@ class Utils {
 
   // Method to pick an image from the gallery
   Future<File?> pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      return File(pickedFile.path);
+    }
+    return null;
+  }
+
+  Future<File?> getImage(ImageSource source) async {
+    final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
       return File(pickedFile.path);
     }

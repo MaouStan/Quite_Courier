@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:quite_courier/services/auth_service.dart';
 import 'package:quite_courier/models/rider_sign_up_data.dart';
+import 'package:quite_courier/services/utils.dart';
 
 class SignUpPage extends StatefulWidget {
   final String role;
@@ -81,25 +82,62 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  void _showImageSourceDialog(
+      BuildContext context, Function(File?) onImageSelected) {
+    Utils utils = Utils();
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () async {
+                Navigator.pop(context);
+                File? selected = await utils.takePhoto();
+                if (selected != null) {
+                  onImageSelected(selected);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Pick Image'),
+              onTap: () async {
+                Navigator.pop(context);
+                File? selected = await utils.pickImage();
+                if (selected != null) {
+                  onImageSelected(selected);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _getProfileImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-        dev.log(_profileImage!.path);
-      });
-    }
+    _showImageSourceDialog(context, (File? image) {
+      if (image != null) {
+        setState(() {
+          _profileImage = image;
+          dev.log(_profileImage!.path);
+        });
+      }
+    });
   }
 
   Future<void> _getVehicleImage() async {
-    final XFile? pickedFile =
-        await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _vehicleImage = File(pickedFile.path);
-      });
-    }
+    _showImageSourceDialog(context, (File? image) {
+      if (image != null) {
+        setState(() {
+          _vehicleImage = image;
+        });
+      }
+    });
   }
 
   final AuthService _authService = AuthService();
@@ -140,7 +178,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
           vehicleRegistration: _vehicleRegistrationController.text.trim(),
         );
 
-        result = await _authService.registerRider(signUpData, _profileImage, _vehicleImage);
+        result = await _authService.registerRider(
+            signUpData, _profileImage, _vehicleImage);
         // Handle result for rider registration
       } else {
         UserSignUpData signUpData = UserSignUpData(
@@ -233,9 +272,12 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   }
 
   bool _validateAuthenticationTab({bool isNotify = true}) {
-    if (_telephoneController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty) {
+    if (_telephoneController.text.trim().isEmpty ||
+        _telephoneController.text.contains(' ') ||
+        _passwordController.text.trim().isEmpty ||
+        _passwordController.text.contains(' ') ||
+        _confirmPasswordController.text.trim().isEmpty ||
+        _confirmPasswordController.text.contains(' ')) {
       if (isNotify) {
         Get.closeAllSnackbars();
         Get.snackbar(
@@ -260,6 +302,7 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       }
       return false;
     }
+
     if (_passwordController.text != _confirmPasswordController.text) {
       if (isNotify) {
         Get.closeAllSnackbars();
@@ -273,11 +316,13 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
       }
       return false;
     }
+
     return true;
   }
 
   bool _validatePersonalDataTab({bool isNotify = true}) {
-    if (_nameController.text.isEmpty || _profileImage == null) {
+    if (_nameController.text.trim().isEmpty ||
+    _profileImage == null) {
       if (isNotify) {
         Get.closeAllSnackbars();
 
@@ -657,7 +702,8 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                     _selectedPosition = await Get.to(() => MapPage(
                           mode: MapMode.select,
                           selectedPosition: oldPostiion,
-                        ));
+                        )) ??
+                        oldPostiion;
                     dev.log('selectedPosition: $_selectedPosition');
                     if (_selectedPosition != null) {
                       _positionController.text =
