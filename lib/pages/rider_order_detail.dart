@@ -23,24 +23,22 @@ class _RiderOrderDetailState extends State<RiderOrderDetail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(userType: UserType.rider),
-      drawer: const MyDrawer(userType: UserType.rider),
-      body: FutureBuilder<OrderDataRes>( // Change this line
-        future: OrderService.getOrderDetails(widget.orderId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData) {
-            return const Center(child: Text('Order not found'));
-          }
+        appBar: const CustomAppBar(userType: UserType.rider),
+        drawer: const MyDrawer(userType: UserType.rider),
+        body: StreamBuilder<OrderDataRes>(
+          stream: OrderService.streamOrderDetails(widget.orderId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData) {
+              return const Center(child: Text('Order not found'));
+            }
 
-          final order = snapshot.data!; // Now this is of type OrderDataRes
-          
-          return OrderDetailContent(order: order, userType: UserType.rider,); // Pass the whole order object
-        },
-      ),
-    );
+            final order = snapshot.data!;
+            return OrderDetailContent(order: order, userType: UserType.rider);
+          },
+        ));
   }
 }
