@@ -234,19 +234,17 @@ class OrderService {
     }
   }
 
- static Future<OrderDataRes> getOrderDetails(String orderId) async {
-  try {
-    DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance
-        .collection('orders')
-        .doc(orderId)
-        .get();
-
+ static Stream<OrderDataRes> streamOrderDetails(String orderId) {
+  return FirebaseFirestore.instance
+      .collection('orders')
+      .doc(orderId)
+      .snapshots()
+      .asyncMap((orderSnapshot) async {
     if (!orderSnapshot.exists) {
       throw Exception('Order not found');
     }
 
-    Map<String, dynamic> orderData =
-        orderSnapshot.data() as Map<String, dynamic>;
+    Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
 
     String riderTelephone = orderData['riderTelephone'];
     String senderTelephone = orderData['senderTelephone'];
@@ -261,10 +259,7 @@ class OrderService {
       ..riderProfileImage = riderProfileImage
       ..senderProfileImage = senderProfileImage
       ..receiverProfileImage = receiverProfileImage;
-
-  } catch (e) {
-    throw Exception('Failed to get order details: $e');
-  }
+  });
 }
 
 static Future<String> _fetchUserProfileImage(String collection, String telephone) async {
