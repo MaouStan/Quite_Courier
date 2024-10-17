@@ -46,9 +46,9 @@ class OrderDetailContent extends StatelessWidget {
         }
 
         final orderData = snapshot.data!.data() as Map<String, dynamic>;
-        final updatedOrder = OrderDataRes.fromJson(orderData, snapshot.data!.id);
+        final updatedOrder =
+            OrderDataRes.fromJson(orderData, snapshot.data!.id);
         final currentStep = _getStepFromOrderState(updatedOrder.state);
-
 
         return SingleChildScrollView(
           child: Padding(
@@ -207,6 +207,18 @@ class OrderDetailContent extends StatelessWidget {
           CircleAvatar(
             radius: 30,
             backgroundImage: NetworkImage(order.riderProfileImage ?? ""),
+            onBackgroundImageError: (exception, stackTrace) {
+              // Use a placeholder icon when the image fails to load
+              return;
+            },
+            child: order.riderProfileImage == null ||
+                    order.riderProfileImage!.isEmpty
+                ? const Icon(
+                    Icons.person,
+                    size: 60,
+                    color: Colors.grey,
+                  )
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -257,10 +269,22 @@ class OrderDetailContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: imageUrl.isNotEmpty
-            ? Image.network(imageUrl, fit: BoxFit.cover)
-            : const Center(child: Text('No Image')),
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          imageUrl,
+          width: 120,
+          height: 80,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Return a placeholder or fallback image when the network image fails to load
+            return Container(
+              width: 120,
+              height: 80,
+              color: Colors.grey[300],
+              child: Icon(Icons.image_not_supported, color: Colors.grey[600]),
+            );
+          },
+        ),
       ),
     );
   }
@@ -274,6 +298,18 @@ class OrderDetailContent extends StatelessWidget {
           CircleAvatar(
             radius: 30,
             backgroundImage: NetworkImage(order.receiverProfileImage ?? ''),
+            onBackgroundImageError: (exception, stackTrace) {
+              // Use a placeholder icon when the image fails to load
+              return;
+            },
+            child: order.receiverProfileImage == null ||
+                    order.receiverProfileImage!.isEmpty
+                ? const Icon(
+                    Icons.person,
+                    size: 60,
+                    color: Colors.grey,
+                  )
+                : null,
           ),
           const SizedBox(width: 16),
           Column(
@@ -299,6 +335,18 @@ class OrderDetailContent extends StatelessWidget {
           CircleAvatar(
             radius: 30,
             backgroundImage: NetworkImage(order.senderProfileImage ?? ''),
+            onBackgroundImageError: (exception, stackTrace) {
+              // Use a placeholder icon when the image fails to load
+              return;
+            },
+            child: order.senderProfileImage == null ||
+                    order.senderProfileImage!.isEmpty
+                ? const Icon(
+                    Icons.person,
+                    size: 60,
+                    color: Colors.grey,
+                  )
+                : null,
           ),
           const SizedBox(width: 16),
           Column(

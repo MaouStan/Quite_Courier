@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/user_controller.dart';
-import 'package:quite_courier/interfaces/order_people.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
-import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
@@ -24,11 +22,16 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
   Stream<List<OrderDataRes>> getReceivedOrdersStream() {
     return FirebaseFirestore.instance
         .collection('orders')
-        .where('receiverPhone', isEqualTo: userController.userData.value.telephone)
+        .where('receiverTelephone',
+            isEqualTo: userController.userData.value.telephone)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
-            .toList());
+        .map((snapshot) {
+      var orders = snapshot.docs
+          .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
+          .toList();
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return orders;
+    });
   }
 
   @override
@@ -66,7 +69,8 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildStatItem('รับของแล้ว', receivedOrders.length),
+                              _buildStatItem(
+                                  'รับของแล้ว', receivedOrders.length),
                               _buildStatItem(
                                   'ของกำลังมาส่ง',
                                   receivedOrders
@@ -85,7 +89,11 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      OrderListView(useIncomingData: true, orders: receivedOrders, userType: UserType.user,),
+                      OrderListView(
+                        useIncomingData: true,
+                        orders: receivedOrders,
+                        userType: UserType.user,
+                      ),
                     ],
                   ),
                 ),
@@ -96,7 +104,6 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
       ),
     );
   }
-
 
   Widget _buildStatItem(String label, int value) {
     return Row(

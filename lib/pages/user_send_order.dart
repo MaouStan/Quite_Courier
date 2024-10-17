@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -390,6 +392,7 @@ class _UserSendOrderState extends State<UserSendOrder>
           ),
           const SizedBox(height: 20),
           Expanded(
+            // Wrap the ListView in an Expanded widget
             child: _filteredUsers.isEmpty
                 ? const Center(child: Text('No users found'))
                 : ListView.builder(
@@ -440,75 +443,71 @@ class _UserSendOrderState extends State<UserSendOrder>
                     },
                   ),
           ),
-          // const SizedBox(height: 20),
-          const Spacer(), // เพิ่ม Spacer เพื่อให้ปุ่มอยู่ด้านล่าง
-          Padding(
-            padding: const EdgeInsets.only(bottom: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _tabController.animateTo(0);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      minimumSize: const Size(100, 60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 0,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    _tabController.animateTo(0);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    minimumSize: const Size(100, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                    child: Text(
-                      'Back',
-                      style: TextStyle(
-                          fontSize: Get.textTheme.titleLarge!.fontSize,
-                          color: Colors.white),
-                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Back',
+                    style: TextStyle(
+                        fontSize: Get.textTheme.titleLarge!.fontSize,
+                        color: Colors.white),
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD4AF37), Color(0xFFF7EAB5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _tabController.animateTo(2);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      minimumSize: const Size(200, 60),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 0,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    _tabController.animateTo(2);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    minimumSize: const Size(200, 60),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
                     ),
-                    child: Text(
-                      'Next',
-                      style: TextStyle(
-                          fontSize: Get.textTheme.titleLarge!.fontSize,
-                          color: Colors.white),
-                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Next',
+                    style: TextStyle(
+                        fontSize: Get.textTheme.titleLarge!.fontSize,
+                        color: Colors.white),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           )
         ],
       ),
@@ -553,11 +552,14 @@ class _UserSendOrderState extends State<UserSendOrder>
             ),
             TextField(
               controller: receiverControllers['name']!,
+              enabled: false,
+              maxLines: 1,
+              style: TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 hintText: 'MaouStan',
                 hintStyle: TextStyle(color: Colors.grey.shade400),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -573,15 +575,18 @@ class _UserSendOrderState extends State<UserSendOrder>
             ),
             TextField(
               controller: receiverControllers['telephone']!,
+              enabled: false,
+              maxLines: 1,
               decoration: InputDecoration(
                 hintText: '0999999999',
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 hintStyle: TextStyle(color: Colors.grey.shade400),
               ),
+              style: TextStyle(color: Colors.black),
             ),
             const SizedBox(height: 20),
             Text(

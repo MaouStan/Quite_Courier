@@ -154,6 +154,15 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 radius: 30,
                 backgroundImage: NetworkImage(
                     stateController.riderData.value.profileImageUrl ?? ''),
+                onBackgroundImageError: (exception, stackTrace) {
+                  // Handle the error by setting a placeholder icon
+                  return;
+                },
+                child: const Icon(
+                  Icons.person,
+                  size: 60,
+                  color: Colors.grey,
+                ),
               ),
               const SizedBox(width: 12),
               Text(stateController.riderData.value.name,
@@ -172,12 +181,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 style: TextStyle(fontSize: 18, color: Color(0xFFb0c7fb)),
               ),
               Obx(() => Text(
-                stateController.orderCount.toString(),
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFb0c7fb)),
-              )),
+                    stateController.orderCount.toString(),
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFb0c7fb)),
+                  )),
             ],
           ),
         ],
@@ -209,7 +218,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
       onTap: () {
         log(order.documentId.toString());
         Get.to(() => RiderOrderDetail(orderId: order.documentId));
-        
       },
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
@@ -255,13 +263,24 @@ class _RiderHomePageState extends State<RiderHomePage> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Image.network(
-                    order.orderPhoto,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      order.orderPhoto,
+                      width: 120,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Return a placeholder or fallback image when the network image fails to load
+                        return Container(
+                          width: 120,
+                          height: 80,
+                          color: Colors.grey[300],
+                          child: Icon(Icons.image_not_supported,
+                              color: Colors.grey[600]),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -491,16 +510,16 @@ class _RiderHomePageState extends State<RiderHomePage> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      title: Text('แจ้งเตือน'),
-                                      content:
-                                          Text('โปรดถ่ายรูปยืนยันการส่งสินค้า'),
+                                      title: const Text('แจ้งเตือน'),
+                                      content: const Text(
+                                          'โปรดถ่ายรูปยืนยันการส่งสินค้า'),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
                                             Navigator.of(context)
                                                 .pop(); // ปิด dialog เมื่อกดปุ่มยกเลิก
                                           },
-                                          child: Text('ยกเลิก'),
+                                          child: const Text('ยกเลิก'),
                                         ),
                                         TextButton(
                                           onPressed: () {
@@ -509,7 +528,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                                             _updateOrderState(OrderState
                                                 .completed); // เปลี่ยนสถานะคำสั่งซื้อ
                                           },
-                                          child: Text('ยืนยัน'),
+                                          child: const Text('ยืนยัน'),
                                         ),
                                       ],
                                     );

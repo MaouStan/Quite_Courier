@@ -18,7 +18,12 @@ class OrderListView extends StatelessWidget {
   final int? limit;
   final List<OrderDataRes>? orders;
 
-  OrderListView({super.key, this.useIncomingData = false, this.limit, this.orders, required this.userType});
+  OrderListView(
+      {super.key,
+      this.useIncomingData = false,
+      this.limit,
+      this.orders,
+      required this.userType});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +39,9 @@ class OrderListView extends StatelessWidget {
           return const Center(child: Text('No orders available'));
         }
 
-        final displayedOrders = limit != null ? snapshot.data!.take(limit!).toList() : snapshot.data!;
+        final displayedOrders = limit != null
+            ? snapshot.data!.take(limit!).toList()
+            : snapshot.data!;
         return ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -83,11 +90,24 @@ class OrderListView extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               Row(
                 children: [
-                  Image.network(
-                    order.orderPhoto,
-                    width: 120,
-                    height: 80,
-                    fit: BoxFit.cover,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      order.orderPhoto,
+                      width: 120,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Return a placeholder or fallback image when the network image fails to load
+                        return Container(
+                          width: 120,
+                          height: 80,
+                          color: Colors.grey[300],
+                          child: Icon(Icons.image_not_supported,
+                              color: Colors.grey[600]),
+                        );
+                      },
+                    ),
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,6 +117,8 @@ class OrderListView extends StatelessWidget {
                           : '  ผู้รับ : ${order.receiverName}'),
                       Text(
                           '  ส่งเมื่อวันที่ : ${order.createdAt.toString().split(' ')[0]}'),
+                      Text(
+                          '  ส่งเมื่อเวลา : ${order.createdAt.toString().split(' ')[1].substring(0, 8)}'),
                     ],
                   ),
                 ],
