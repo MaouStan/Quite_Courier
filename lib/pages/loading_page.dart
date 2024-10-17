@@ -1,10 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:quite_courier/interfaces/order_people.dart';
-import 'package:quite_courier/interfaces/order_state.dart';
-import 'package:quite_courier/models/order_data_req.dart';
 import 'dart:async';
 
 import 'package:quite_courier/pages/role_page.dart';

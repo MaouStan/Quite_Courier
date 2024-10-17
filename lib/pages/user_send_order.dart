@@ -13,7 +13,6 @@ import 'package:quite_courier/models/user_data.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/user_home_page.dart';
 import 'package:quite_courier/services/order_service.dart';
-import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/services/auth_service.dart';
 import 'package:quite_courier/controller/user_controller.dart';
@@ -78,7 +77,7 @@ class _UserSendOrderState extends State<UserSendOrder>
       setState(() {
         _users.clear();
         for (var doc in snapshot.docs) {
-          _users.add(UserData.fromJson(doc.data() as Map<String, dynamic>));
+          _users.add(UserData.fromJson(doc.data()));
         }
         _filterUsers();
       });

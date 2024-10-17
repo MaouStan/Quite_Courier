@@ -2,9 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quite_courier/controller/order_controller.dart';
 import 'package:quite_courier/controller/user_controller.dart';
-import 'package:quite_courier/interfaces/order_people.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';

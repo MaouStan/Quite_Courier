@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -189,7 +188,7 @@ class OrderDetailContent extends StatelessWidget {
   }
 
   Widget _buildRiderDetails(OrderDataRes order) {
-    if (order.riderName == null || order.riderName.isEmpty) {
+    if (order.riderName.isEmpty) {
       return Container(
         decoration: const BoxDecoration(color: Colors.white),
         padding: const EdgeInsets.all(12.0),

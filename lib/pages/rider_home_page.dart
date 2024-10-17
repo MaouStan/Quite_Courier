@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
@@ -18,7 +17,6 @@ import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:quite_courier/services/auth_service.dart';
 
 class RiderHomePage extends StatefulWidget {

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/models/order_data_req.dart';
 import 'package:quite_courier/models/order_data_res.dart';
@@ -188,7 +187,7 @@ class OrderService {
           .update(updateData);
     } catch (e) {
       log('Error updating rider images: $e');
-      throw e;
+      rethrow;
     }
   }
 

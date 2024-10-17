@@ -2,12 +2,10 @@ import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/models/rider_data.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import 'package:geolocator/geolocator.dart';
 import 'package:quite_courier/services/auth_service.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
@@ -53,7 +51,7 @@ class RiderController extends GetxController {
   }
 
   void startLocationUpdates() {
-    _locationUpdateTimer = Timer.periodic(Duration(seconds: 2), (timer) async {
+    _locationUpdateTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
       if (riderData.value.telephone.isNotEmpty) {
         LatLng position = await GeolocatorServices.getCurrentLocation();
 

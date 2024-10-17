@@ -1,10 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/models/auth_res.dart';
@@ -12,7 +9,6 @@ import 'package:quite_courier/models/user_data.dart';
 import 'package:quite_courier/models/user_sign_up_data.dart';
 import 'package:quite_courier/models/rider_sign_up_data.dart';
 import 'package:quite_courier/services/firebase_service.dart';
-import 'package:geolocator/geolocator.dart';
 
 class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -138,11 +134,6 @@ class AuthService {
         return AuthResponse(
             success: false, message: "Failed to upload profile image.");
       }
-    }
-
-    if (userData.addressDescription == null) {
-      return AuthResponse(
-          success: false, message: "Please fill in all the fields.");
     }
 
     try {

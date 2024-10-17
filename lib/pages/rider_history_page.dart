@@ -5,7 +5,6 @@ import 'package:quite_courier/controller/rider_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
-import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
