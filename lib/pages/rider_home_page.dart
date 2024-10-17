@@ -171,13 +171,13 @@ class _RiderHomePageState extends State<RiderHomePage> {
                 'จัดส่งแล้ว',
                 style: TextStyle(fontSize: 18, color: Color(0xFFb0c7fb)),
               ),
-              Text(
+              Obx(() => Text(
                 stateController.orderCount.toString(),
                 style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFFb0c7fb)),
-              ),
+              )),
             ],
           ),
         ],

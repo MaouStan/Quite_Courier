@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:quite_courier/services/auth_service.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
+import 'package:quite_courier/interfaces/order_state.dart';
 
 enum RiderOrderState { waitGetOrder, sendingOrder }
 
@@ -23,7 +24,8 @@ class RiderController extends GetxController {
     location: const LatLng(0, 0),
   ).obs;
 
-  int orderCount = 0;
+  RxInt orderCount = 0.obs;
+  StreamSubscription<QuerySnapshot>? _orderCountSubscription;
 
   var currentState = RiderOrderState.waitGetOrder.obs;
   Rx<OrderDataRes?> currentOrder = Rx<OrderDataRes?>(null);
@@ -40,11 +42,13 @@ class RiderController extends GetxController {
   void onInit() {
     super.onInit();
     startLocationUpdates();
+    _startOrderCountStream();
   }
 
   @override
   void onClose() {
     stopLocationUpdates();
+    _stopOrderCountStream();
     super.onClose();
   }
 
@@ -107,5 +111,30 @@ class RiderController extends GetxController {
       // Handle errors appropriately in production
       print('Error uploading image: $e');
     }
+  }
+
+  void _startOrderCountStream() {
+    if (riderData.value.telephone.isNotEmpty) {
+      _orderCountSubscription = FirebaseFirestore.instance
+          .collection('orders')
+          .where('riderTelephone', isEqualTo: riderData.value.telephone)
+          .where('state', isEqualTo: OrderState.completed.toString())
+          .snapshots()
+          .listen((snapshot) {
+        orderCount.value = snapshot.docs.length;
+      });
+    }
+  }
+
+  void _stopOrderCountStream() {
+    _orderCountSubscription?.cancel();
+    _orderCountSubscription = null;
+  }
+
+  // Call this method when rider data is updated
+  void updateRiderData(RiderData newData) {
+    riderData.value = newData;
+    _stopOrderCountStream(); // Stop the existing stream
+    _startOrderCountStream(); // Start a new stream with the updated telephone
   }
 }
