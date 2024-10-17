@@ -455,11 +455,11 @@ class _RiderHomePageState extends State<RiderHomePage> {
                                           onPressed: () async {
                                             await _updateOrderState(
                                                 OrderState.onDelivery);
-                                            Get.to(() => RiderOrderDetail(
-                                                orderId: stateController
-                                                    .currentOrder
-                                                    .value!
-                                                    .documentId));
+                                            // Get.to(() => RiderOrderDetail(
+                                            //     orderId: stateController
+                                            //         .currentOrder
+                                            //         .value!
+                                            //         .documentId));
                                           },
                                         ),
                                       ],
