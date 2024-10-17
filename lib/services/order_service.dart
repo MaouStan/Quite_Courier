@@ -233,40 +233,79 @@ class OrderService {
       return false;
     }
   }
+static Stream<OrderDataRes> streamOrderDetails(String orderId) {
+  try {
+    return FirebaseFirestore.instance
+        .collection('orders')
+        .doc(orderId)
+        .snapshots()
+        .asyncMap((orderSnapshot) async {
+      // เพิ่ม log เพื่อดีบัก
+      log("Fetching order details for ID: $orderId");
+      
+      if (!orderSnapshot.exists) {
+        log("Order not found: $orderId");
+        throw Exception('Order not found');
+      }
 
- static Stream<OrderDataRes> streamOrderDetails(String orderId) {
-  return FirebaseFirestore.instance
-      .collection('orders')
-      .doc(orderId)
-      .snapshots()
-      .asyncMap((orderSnapshot) async {
-    if (!orderSnapshot.exists) {
-      throw Exception('Order not found');
-    }
+      Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
 
-    Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
+      // ตรวจสอบค่าว่างของเบอร์โทรศัพท์
+      String riderTelephone = orderData['riderTelephone'] ?? '';
+      String senderTelephone = orderData['senderTelephone'] ?? '';
+      String receiverTelephone = orderData['receiverTelephone'] ?? '';
 
-    String riderTelephone = orderData['riderTelephone'];
-    String senderTelephone = orderData['senderTelephone'];
-    String receiverTelephone = orderData['receiverTelephone'];
+      log("Fetching profile images for - Rider: $riderTelephone, Sender: $senderTelephone, Receiver: $receiverTelephone");
 
-    // Fetch Rider, Sender, and Receiver Profile Images
-    String riderProfileImage = await _fetchUserProfileImage('riders', riderTelephone);
-    String senderProfileImage = await _fetchUserProfileImage('users', senderTelephone);
-    String receiverProfileImage = await _fetchUserProfileImage('users', receiverTelephone);
+      // ใช้ Future.wait เพื่อดึงข้อมูลรูปพร้อมกัน
+      final List<String> profileImages = await Future.wait([
+        _fetchUserProfileImage('riders', riderTelephone),
+        _fetchUserProfileImage('users', senderTelephone),
+        _fetchUserProfileImage('users', receiverTelephone),
+      ]);
 
-    return OrderDataRes.fromJson(orderData, orderId)
-      ..riderProfileImage = riderProfileImage
-      ..senderProfileImage = senderProfileImage
-      ..receiverProfileImage = receiverProfileImage;
-  });
+      // สร้าง OrderDataRes object
+      final orderDataRes = OrderDataRes.fromJson(orderData, orderId);
+      orderDataRes.riderProfileImage = profileImages[0];
+      orderDataRes.senderProfileImage = profileImages[1];
+      orderDataRes.receiverProfileImage = profileImages[2];
+
+      log("Successfully created OrderDataRes object");
+      return orderDataRes;
+    }).handleError((error) {
+      log("Error in streamOrderDetails: $error");
+      throw error;
+    });
+  } catch (e) {
+    log("Unexpected error in streamOrderDetails: $e");
+    rethrow;
+  }
 }
 
 static Future<String> _fetchUserProfileImage(String collection, String telephone) async {
-  DocumentSnapshot snapshot = await FirebaseFirestore.instance.collection(collection).doc(telephone).get();
-  return snapshot.exists && snapshot.data() != null
-      ? (snapshot.data() as Map<String, dynamic>)['profileImageUrl'] ?? ''
-      : '';
-}
+  try {
+    if (telephone.isEmpty) {
+      log("Empty telephone number for collection: $collection");
+      return '';
+    }
 
+    final snapshot = await FirebaseFirestore.instance
+        .collection(collection)
+        .doc(telephone)
+        .get();
+
+    if (!snapshot.exists || snapshot.data() == null) {
+      log("No profile found for $telephone in $collection");
+      return '';
+    }
+
+    final profileImageUrl = (snapshot.data() as Map<String, dynamic>)['profileImageUrl'] ?? '';
+    log("Retrieved profile image for $telephone: $profileImageUrl");
+    return profileImageUrl;
+    
+  } catch (e) {
+    log("Error fetching profile image for $telephone in $collection: $e");
+    return ''; // คืนค่าว่างในกรณีที่เกิดข้อผิดพลาด
+  }
+}
 }

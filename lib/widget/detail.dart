@@ -24,14 +24,14 @@ class OrderDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Assuming userController is needed later, otherwise you can remove this line.
     final userController = Get.find<UserController>();
 
     return StreamBuilder<DocumentSnapshot>(
+      // แก้ตรงนี้ โดยใช้ order.documentId แทน orderId
       stream: FirebaseFirestore.instance
           .collection('orders')
-          .doc(order.documentId) // Use the orderId from the passed order object
-          .snapshots(),
+          .doc(order.documentId) // ใช้ order.documentId
+          .snapshots(), // ลบ .map ออกเพราะเราต้องการ DocumentSnapshot
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -46,9 +46,9 @@ class OrderDetailContent extends StatelessWidget {
         }
 
         final orderData = snapshot.data!.data() as Map<String, dynamic>;
-        final updatedOrder =
-            OrderDataRes.fromJson(orderData, snapshot.data!.id);
+        final updatedOrder = OrderDataRes.fromJson(orderData, snapshot.data!.id);
         final currentStep = _getStepFromOrderState(updatedOrder.state);
+
 
         return SingleChildScrollView(
           child: Padding(

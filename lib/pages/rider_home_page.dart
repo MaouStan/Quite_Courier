@@ -207,7 +207,9 @@ class _RiderHomePageState extends State<RiderHomePage> {
   Widget _buildOrderCard(OrderDataRes order) {
     return GestureDetector(
       onTap: () {
+        log(order.documentId.toString());
         Get.to(() => RiderOrderDetail(orderId: order.documentId));
+        
       },
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
