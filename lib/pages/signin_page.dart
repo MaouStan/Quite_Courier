@@ -109,6 +109,9 @@ class _SigninPageState extends State<SigninPage> {
                 location: LatLng(userData['location']['latitude'],
                     userData['location']['longitude']),
               );
+
+              Get.find<RiderController>()
+                  .updateRiderData(Get.find<RiderController>().riderData.value);
               Get.to(
                 () =>
                     const RiderHomePage(), // Replace this with the target page
@@ -194,7 +197,7 @@ class _SigninPageState extends State<SigninPage> {
                       color: const Color(0xFF665DF4)),
                 ),
                 const SizedBox(height: 10),
-      
+
                 // Telephone field
                 Padding(
                   padding: const EdgeInsets.all(12.0),
@@ -208,7 +211,7 @@ class _SigninPageState extends State<SigninPage> {
                           fontSize: Get.textTheme.titleMedium!.fontSize,
                         ),
                       ),
-      
+
                       TextField(
                         controller: _telephoneController,
                         keyboardType: TextInputType.phone,
@@ -224,7 +227,7 @@ class _SigninPageState extends State<SigninPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-      
+
                       // Password field
                       Text(
                         "Password",
@@ -233,7 +236,7 @@ class _SigninPageState extends State<SigninPage> {
                           fontSize: Get.textTheme.titleMedium!.fontSize,
                         ),
                       ),
-      
+
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscureText,
@@ -265,7 +268,7 @@ class _SigninPageState extends State<SigninPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
-      
+
                 // Sign In button
                 ElevatedButton(
                   onPressed: () {
