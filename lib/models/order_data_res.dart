@@ -86,7 +86,7 @@ class OrderDataRes {
 
   static OrderDataRes fromJson(Map<String, dynamic> json, String docId) =>
       OrderDataRes(
-        documentId: docId,
+        documentId: json['documentId'] ,
         riderName: json['riderName'],
         riderTelephone: json['riderTelephone'],
         senderName: json['senderName'],

@@ -22,6 +22,7 @@ class RiderOrderDetail extends StatefulWidget {
 class _RiderOrderDetailState extends State<RiderOrderDetail> {
   @override
   Widget build(BuildContext context) {
+    log(widget.orderId);
     return Scaffold(
         appBar: const CustomAppBar(userType: UserType.rider),
         drawer: const MyDrawer(userType: UserType.rider),
