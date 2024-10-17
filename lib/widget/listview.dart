@@ -8,8 +8,10 @@ import 'package:quite_courier/interfaces/user_types.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/reciver_order_detail.dart';
 import 'package:quite_courier/pages/sender_order_detail.dart';
+import 'package:quite_courier/pages/rider_order_detail.dart'; // เพิ่ม import
 import 'package:quite_courier/services/order_service.dart';
 
+// ignore: must_be_immutable
 class OrderListView extends StatelessWidget {
   final bool useIncomingData;
   UserType userType;
@@ -20,6 +22,7 @@ class OrderListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    log(userType.toString());
     return FutureBuilder<List<OrderDataRes>>(
       future: orders != null ? Future.value(orders!) : _fetchOrders(),
       builder: (context, snapshot) {
@@ -53,14 +56,16 @@ class OrderListView extends StatelessWidget {
 
   Widget _buildOrderItem(OrderDataRes order) {
     return InkWell(
-      onTap: useIncomingData
-          ? () {
-              Get.to(() => ReciverOrderDetail(orderId: order.documentId));
-            }
-          : () {
-              log(order.documentId.toString());
-              Get.to(() => SenderOrderDetail(orderId: order.documentId));
-            },
+      onTap: () {
+        if (userType == UserType.rider) {
+          Get.to(() => RiderOrderDetail(orderId: order.documentId));
+        } else if (useIncomingData) {
+          Get.to(() => ReciverOrderDetail(orderId: order.documentId));
+        } else {
+          log(order.documentId.toString());
+          Get.to(() => SenderOrderDetail(orderId: order.documentId));
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
@@ -108,7 +113,6 @@ class OrderListView extends StatelessWidget {
     );
   }
 
-  // Timeline labels
   final List<String> _timelineLabels = [
     'รอดำเนินการ',
     'รับของแล้ว',
