@@ -12,6 +12,7 @@ import 'package:quite_courier/services/auth_service.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:quite_courier/services/firebase_service.dart';
 
 enum RiderOrderState { waitGetOrder, sendingOrder }
 
@@ -40,6 +41,8 @@ class RiderController extends GetxController {
   final AuthService _authService = AuthService();
 
   RxBool isWithinRange = false.obs;
+
+  final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void onInit() {
@@ -111,42 +114,29 @@ class RiderController extends GetxController {
     }
   }
 
-  // {{ edit_4 }} Upload the selected image upon confirmation
-  Future<void> uploadSelectedImage(File imageFile,
-      {bool isProfileImage = true}) async {
-    return;
-    // ignore: dead_code
+  Future<bool> uploadSelectedImage(File imageFile, {bool isProfileImage = true}) async {
     try {
       final telephone = riderData.value.telephone;
-      final fileExtension = imageFile.path.split('.').last;
-      final fileName =
-          '$telephone-${isProfileImage ? 'profile' : 'vehicle'}.$fileExtension';
-      final storageRef =
-          FirebaseStorage.instance.ref().child('rider_images/$fileName');
+      final downloadUrl = await _firebaseService.uploadRiderImage(imageFile, telephone, isProfileImage);
 
-      // Upload the file to Firebase Storage
-      await storageRef.putFile(imageFile);
-
-      // Get the download URL
-      final downloadUrl = await storageRef.getDownloadURL();
-
-      // Update Firestore with the new image URL
-      await FirebaseFirestore.instance
-          .collection('riders')
-          .doc(telephone)
-          .update({isProfileImage ? 'image' : 'vehicleImage': downloadUrl});
-
-      // Update local state
-      riderData.update((val) {
-        if (isProfileImage) {
-          val?.vehicleImage = downloadUrl;
-        } else {
-          val?.vehicleImage = downloadUrl;
-        }
-      });
+      if (downloadUrl != null) {
+        // Update local state
+        riderData.update((val) {
+          if (isProfileImage) {
+            val?.profileImageUrl = downloadUrl;
+          } else {
+            val?.vehicleImage = downloadUrl;
+          }
+        });
+        log('Image uploaded: $downloadUrl');
+        return true;
+      } else {
+        log('Failed to upload image');
+        return false;
+      }
     } catch (e) {
-      // Handle errors appropriately in production
-      print('Error uploading image: $e');
+      log('Error uploading image: $e');
+      return false;
     }
   }
 

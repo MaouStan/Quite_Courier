@@ -46,4 +46,22 @@ class RiderData {
   String toString() {
     return 'RiderData(vehicleImage: $vehicleImage, telephone: $telephone, name: $name, vehicleRegistration: $vehicleRegistration, location: $location)';
   }
+
+  RiderData copyWith({
+    String? profileImageUrl,
+    String? telephone,
+    String? name,
+    String? vehicleImage,
+    String? vehicleRegistration,
+    LatLng? location,
+  }) {
+    return RiderData(
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      telephone: telephone ?? this.telephone,
+      name: name ?? this.name,
+      vehicleImage: vehicleImage ?? this.vehicleImage,
+      vehicleRegistration: vehicleRegistration ?? this.vehicleRegistration,
+      location: location ?? this.location,
+    );
+  }
 }

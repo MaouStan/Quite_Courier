@@ -1,9 +1,15 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:quite_courier/controller/rider_controller.dart';
+import 'package:quite_courier/models/auth_res.dart';
+import 'package:quite_courier/models/rider_data.dart';
 import 'dart:io';
 
 import 'package:quite_courier/services/utils.dart'; // To handle File
+import 'package:quite_courier/services/auth_service.dart';
 
 class RiderProfilePage extends StatefulWidget {
   const RiderProfilePage({super.key});
@@ -14,6 +20,7 @@ class RiderProfilePage extends StatefulWidget {
 
 class _RiderProfilePageState extends State<RiderProfilePage> {
   final RiderController riderController = Get.find<RiderController>();
+  final AuthService _authService = AuthService();
   Map<String, TextEditingController>? controllers;
   bool isEditMode = false; // Track edit mode
   File?
@@ -257,19 +264,50 @@ class _RiderProfilePageState extends State<RiderProfilePage> {
     );
   }
 
-  void updateProfile() async {
+  Future<void> updateProfile() async {
+    Get.dialog(const Center(child: CircularProgressIndicator()));
+    
+    bool success = true;
+    String errorMessage = '';
+
     if (_selectedProfileImage != null) {
-      await riderController.uploadSelectedImage(_selectedProfileImage!);
+      success = await riderController.uploadSelectedImage(_selectedProfileImage!);
+      if (!success) errorMessage += 'Failed to upload profile image. ';
     }
+    
     if (_selectedVehicleImage != null) {
-      await riderController.uploadSelectedImage(_selectedVehicleImage!,
-          isProfileImage: false);
+      success = await riderController.uploadSelectedImage(_selectedVehicleImage!, isProfileImage: false);
+      if (!success) errorMessage += 'Failed to upload vehicle image. ';
     }
-    setState(() {
-      isEditMode = false;
-      _selectedProfileImage = null;
-      _selectedVehicleImage = null;
-    });
+
+    // Update other fields using AuthService
+    RiderData updatedRiderData = riderController.riderData.value.copyWith(
+      name: controllers!['name']?.text,
+      vehicleRegistration: controllers!['vehicleRegistration']?.text,
+    );
+
+    AuthResponse response = await _authService.updateRiderProfile(updatedRiderData);
+
+    if (response.success) {
+      // Update local state
+      riderController.updateRiderData(updatedRiderData);
+    } else {
+      success = false;
+      errorMessage += response.message;
+    }
+
+    Get.back(); // Close loading dialog
+
+    if (success) {
+      Get.snackbar('Success', 'Profile updated successfully');
+      setState(() {
+        isEditMode = false;
+        _selectedProfileImage = null;
+        _selectedVehicleImage = null;
+      });
+    } else {
+      Get.snackbar('Error', errorMessage.trim());
+    }
   }
 
   void _showvehicleImageMenu(BuildContext context) {

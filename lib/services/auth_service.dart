@@ -8,6 +8,7 @@ import 'package:quite_courier/models/auth_res.dart';
 import 'package:quite_courier/models/user_data.dart';
 import 'package:quite_courier/models/user_sign_up_data.dart';
 import 'package:quite_courier/models/rider_sign_up_data.dart';
+import 'package:quite_courier/models/rider_data.dart';
 import 'package:quite_courier/services/firebase_service.dart';
 
 class AuthService {
@@ -212,6 +213,21 @@ class AuthService {
     } catch (e) {
       dev.log('Error updating rider location: $e');
       return false;
+    }
+  }
+
+  Future<AuthResponse> updateRiderProfile(RiderData riderData) async {
+    try {
+      await _firestore.collection('riders').doc(riderData.telephone).update({
+        'name': riderData.name,
+        'vehicleRegistration': riderData.vehicleRegistration,
+        // Add other fields as necessary
+      });
+
+      return AuthResponse(success: true, message: 'Profile updated successfully');
+    } catch (e) {
+      dev.log('Error updating rider profile: $e');
+      return AuthResponse(success: false, message: 'Failed to update profile: ${e.toString()}');
     }
   }
 }
