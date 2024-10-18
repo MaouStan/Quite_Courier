@@ -322,7 +322,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         order.riderVehicleRegistration =
             stateController.riderData.value.vehicleRegistration;
 
-        bool success = await OrderService.updateOrder(order);
+        bool success = await OrderService.updateOrder(order, newState: OrderState.accepted);
         if (success) {
           stateController.currentOrder.value = order;
           stateController.currentState.value = RiderOrderState.sendingOrder;
