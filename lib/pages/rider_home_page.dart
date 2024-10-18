@@ -344,7 +344,13 @@ class _RiderHomePageState extends State<RiderHomePage> {
         }
       } else {
         // ถ้าออเดอร์ถูกกดรับไปแล้ว
-        Get.snackbar('Error', 'This order has already been accepted by another rider.');
+       // ถ้าออเดอร์ถูกกดรับไปแล้ว
+        Get.snackbar(
+          'Error', 
+          'ไม่สามารถรับงานได้ งานนี้ถูกรับไปแล้ว', 
+          backgroundColor: Colors.red,  // แสดง snackbar สีแดง
+          colorText: Colors.white,      // สีข้อความ
+        );
       }
     },
   );
