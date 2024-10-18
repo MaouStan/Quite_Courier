@@ -77,7 +77,7 @@ class OrderDetailContent extends StatelessWidget {
                       thickness: 1,
                       indent: 16,
                       endIndent: 16),
-                  _buildRiderDetails(updatedOrder),
+                  _buildRiderDetails(order),
                   const Divider(
                       color: Colors.black,
                       thickness: 1,
@@ -186,11 +186,20 @@ class OrderDetailContent extends StatelessWidget {
                         Text(
                           'ที่อยู่ : ',
                           style: TextStyle(
-                              fontSize: Get.textTheme.titleMedium!.fontSize,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.purple.shade600),
+                            fontSize: Get.textTheme.titleMedium!.fontSize,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple.shade600,
+                          ),
                         ),
-                        Text(order.senderAddress)
+                        Expanded(
+                          // ใช้ Expanded เพื่อให้ข้อความสามารถยืดหยุ่นได้
+                          child: Text(
+                            order.senderAddress,
+                            softWrap: true, // อนุญาตให้ข้อความขึ้นบรรทัดใหม่
+                            overflow: TextOverflow
+                                .visible, // กำหนดให้ข้อความที่ยาวเกินไม่ถูกตัด
+                          ),
+                        ),
                       ],
                     )
                   ],
@@ -412,7 +421,8 @@ class OrderDetailContent extends StatelessWidget {
   }
 
   Widget _buildMapButton(OrderDataRes order) {
-    if (order.state == OrderState.pending || order.state == OrderState.completed) {
+    if (order.state == OrderState.pending ||
+        order.state == OrderState.completed) {
       return Container();
     }
     LatLng orderPosition;

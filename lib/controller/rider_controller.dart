@@ -167,4 +167,6 @@ class RiderController extends GetxController {
     _startOrderCountStream(); // Start a new stream with the updated telephone
     log(riderData.value.toString());
   }
+
+  
 }

@@ -51,7 +51,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   Future<void> _initialize() async {
     var myOrder = await OrderService.fetchOrderWithRiderAndState(
-        stateController.riderData.value.telephone, [OrderState.accepted, OrderState.onDelivery]);
+        stateController.riderData.value.telephone,
+        [OrderState.accepted, OrderState.onDelivery]);
     stateController.currentOrder.value =
         myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
@@ -209,7 +210,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
   Widget _buildOrderCard(OrderDataRes order) {
     return GestureDetector(
       onTap: () {
-        log(order.documentId.toString());
+       
         Get.to(() => RiderOrderDetail(orderId: order.documentId));
       },
       child: Card(
@@ -309,32 +310,46 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   void _acceptOrder(OrderDataRes order) {
-    Get.defaultDialog(
-      title: "ยืนยันการรับงาน",
-      middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
-      textConfirm: "ยืนยัน",
-      textCancel: "ยกเลิก",
-      confirmTextColor: Colors.white,
-      onConfirm: () async {
+  Get.defaultDialog(
+    title: "ยืนยันการรับงาน",
+    middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
+    textConfirm: "ยืนยัน",
+    textCancel: "ยกเลิก",
+    confirmTextColor: Colors.white,
+    onConfirm: () async {
+      // ตรวจสอบสถานะออเดอร์จาก Firestore อีกครั้ง
+      DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(order.documentId)
+          .get();
+
+      String currentOrderState = orderSnapshot['state'];
+
+      // ถ้าออเดอร์ยังไม่ได้ถูกกดรับ
+      if (currentOrderState == OrderState.pending.name) {
         log('name : ${order.riderName}');
         order.state = OrderState.accepted;
-        order.riderName = stateController.riderData.value.name;
-        order.riderTelephone = stateController.riderData.value.telephone;
-        order.riderVehicleRegistration =
-            stateController.riderData.value.vehicleRegistration;
+        order.riderName = stateController.currentOrder.value!.riderName;
+        order.riderTelephone = stateController.currentOrder.value!.riderTelephone;
+        order.riderVehicleRegistration = stateController.currentOrder.value!.riderVehicleRegistration;
 
         bool success = await OrderService.updateOrder(order, newState: OrderState.accepted);
         if (success) {
           stateController.currentOrder.value = order;
-          stateController.currentState.value = RiderOrderState.sendingOrder;
-          Get.back(); // Close dialog
+        stateController.currentState.value = RiderOrderState.sendingOrder;
+          Get.back(); // ปิด dialog
           setState(() {});
         } else {
           Get.snackbar('Error', 'Failed to accept order. Please try again.');
         }
-      },
-    );
-  }
+      } else {
+        // ถ้าออเดอร์ถูกกดรับไปแล้ว
+        Get.snackbar('Error', 'This order has already been accepted by another rider.');
+      }
+    },
+  );
+}
+
 
   void _cancelOrder(OrderDataRes order) {
     // show loading
@@ -373,7 +388,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
       image1 = await Utils().takePhoto();
     } else if (newState == OrderState.completed) {
       image2 = await Utils().takePhoto();
-      stateController.stopLocationUpdates(); // Stop location updates when delivery is completed
+      stateController
+          .stopLocationUpdates(); // Stop location updates when delivery is completed
     }
 
     if (image1 == null && image2 == null) {
@@ -387,7 +403,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
         image1: image1,
         image2: image2,
         newState: newState);
-        
 
     if (success) {
       stateController.currentOrder.value!.state = newState;
@@ -432,8 +447,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
               currentOrder.state == OrderState.accepted
                   ? 'สถานที่รับของ' // Show this text if the order is accepted
                   : 'สถานที่ส่งของ', // Show this text if the order is on delivery
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             _buildMapSection(),

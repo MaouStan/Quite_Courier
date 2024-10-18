@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      MapPage(mode: MapMode.tracks, riderTelephone: riderTelephone),
+                      MapPage(mode: MapMode.tracks, riderTelephone: riderTelephones.first),
                 ),
               );
             },

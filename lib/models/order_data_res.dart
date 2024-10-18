@@ -51,6 +51,7 @@ class OrderDataRes {
     required this.createdAt,
   });
 
+
   @override
   String toString() {
     return 'OrderData(documentId: $documentId, riderName: $riderName, riderTelephone: $riderTelephone, riderVehicleRegistration: $riderVehicleRegistration, senderName: $senderName, senderTelephone: $senderTelephone, receiverName: $receiverName, receiverTelephone: $receiverTelephone, nameOrder: $nameOrder, orderPhoto: $orderPhoto, riderOrderPhoto1: $riderOrderPhoto1, riderOrderPhoto2: $riderOrderPhoto2, description: $description, senderLocation: $senderLocation, receiverLocation: $receiverLocation, senderAddress: $senderAddress, receiverAddress: $receiverAddress, state: $state, createdAt: $createdAt)';
