@@ -39,6 +39,8 @@ class RiderController extends GetxController {
   Timer? _locationUpdateTimer;
   final AuthService _authService = AuthService();
 
+  RxBool isWithinRange = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -79,12 +81,27 @@ class RiderController extends GetxController {
             });
             log('Rider location updated: ${position.latitude}, ${position.longitude}');
             lastPosition = position;
+            // Check if within range of the target location
+            _checkIfWithinRange(position);
           } else {
             log('Failed to update rider location');
           }
         }
       }
     });
+  }
+
+  void _checkIfWithinRange(LatLng currentPosition) {
+    if (currentOrder.value != null) {
+      LatLng targetLocation = currentOrder.value!.state == OrderState.accepted
+          ? currentOrder.value!.senderLocation
+          : currentOrder.value!.receiverLocation;
+
+      double distance = GeolocatorServices.calculateDistance(
+          currentPosition, targetLocation);
+      isWithinRange.value = distance <= 20;
+      log('isWithinRange: ${isWithinRange.value}');
+    }
   }
 
   void stopLocationUpdates() {

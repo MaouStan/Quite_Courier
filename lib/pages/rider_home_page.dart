@@ -402,158 +402,143 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Widget _buildSendingOrderSection() {
-    log('Sending order: ${stateController.currentOrder.value!.toString()}');
-    return FutureBuilder<LatLng>(
-      future: GeolocatorServices.getCurrentLocation(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
+    return Obx(() {
+      final currentOrder = stateController.currentOrder.value;
+      if (currentOrder == null) {
+        return const Center(child: Text('No current order'));
+      }
 
-        final currentLocation =
-            LatLng(snapshot.data!.latitude, snapshot.data!.longitude);
-        final targetLocation =
-            stateController.currentOrder.value!.state == OrderState.accepted
-                ? stateController.currentOrder.value!.senderLocation
-                : stateController.currentOrder.value!.receiverLocation;
+      final targetLocation = currentOrder.state == OrderState.accepted
+          ? currentOrder.senderLocation
+          : currentOrder.receiverLocation;
 
-        final distance = GeolocatorServices.calculateDistance(
-            currentLocation, targetLocation);
-        final isWithinRange = distance <= 20;
-
-        return SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('งานที่กำลังทำ',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              _buildOrderCard(stateController.currentOrder.value!),
-              const SizedBox(height: 16),
-              const Text('สถานะการจัดส่ง',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              _buildDeliveryStatus(),
-              const SizedBox(height: 16),
-              Text(
-                stateController.currentOrder.value!.state == OrderState.accepted
-                    ? 'สถานที่รับของ' // Show this text if the order is accepted
-                    : 'สถานที่ส่งของ', // Show this text if the order is on delivery
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              _buildMapSection(),
-              const SizedBox(height: 8),
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (stateController.currentOrder.value!.state ==
-                        OrderState.accepted)
-                      ElevatedButton(
-                        onPressed: isWithinRange
-                            ? () async {
-                                // แสดง AlertDialog เพื่อแจ้งเตือนให้ถ่ายรูป
-                                await showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('เริ่มการจัดส่ง'),
-                                      content: const Text(
-                                          'โปรดถ่ารูปสินค้าก่อนเริ่มการจัดส่ง'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          child: const Text('ตกลง'),
-                                          onPressed: () async {
-                                            Get.back();
-                                            await _updateOrderState(
-                                                OrderState.onDelivery);
-                                            // Get.to(() => RiderOrderDetail(
-                                            //     orderId: stateController
-                                            //         .currentOrder
-                                            //         .value!
-                                            //         .documentId));
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('งานที่กำลังทำ',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _buildOrderCard(currentOrder!),
+            const SizedBox(height: 16),
+            const Text('สถานะการจัดส่ง',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            _buildDeliveryStatus(),
+            const SizedBox(height: 16),
+            Text(
+              currentOrder.state == OrderState.accepted
+                  ? 'สถานที่รับของ' // Show this text if the order is accepted
+                  : 'สถานที่ส่งของ', // Show this text if the order is on delivery
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildMapSection(),
+            const SizedBox(height: 8),
+            Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (currentOrder.state == OrderState.accepted)
+                    ElevatedButton(
+                      onPressed: stateController.isWithinRange.value
+                          ? () async {
+                              // แสดง AlertDialog เพื่อแจ้งเตือนให้ถ่ายรูป
+                              await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('เริ่มการจัดส่ง'),
+                                    content: const Text(
+                                        'โปรดถ่ารูปสินค้าก่อนเริ่มการจัดส่ง'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: const Text('ตกลง'),
+                                        onPressed: () async {
+                                          Get.back();
+                                          await _updateOrderState(
+                                              OrderState.onDelivery);
+                                          // Get.to(() => RiderOrderDetail(
+                                          //     orderId: stateController
+                                          //         .currentOrder
+                                          //         .value!
+                                          //         .documentId));
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text('Start Delivery'),
                       ),
-                    if (stateController.currentOrder.value!.state ==
-                        OrderState.onDelivery)
-                      ElevatedButton(
-                        onPressed: isWithinRange
-                            ? () {
-                                // แสดง dialog แจ้งเตือน
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('แจ้งเตือน'),
-                                      content: const Text(
-                                          'โปรดถ่ายรูปยืนยันการส่งสินค้า'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context)
-                                                .pop(); // ปิด dialog เมื่อกดปุ่มยกเลิก
-                                          },
-                                          child: const Text('ยกเลิก'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () async {
-                                            Get.back();
-                                            await _updateOrderState(
-                                                OrderState.completed);
-                                          },
-                                          child: const Text('ยืนยัน'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green, // สีพื้นหลังของปุ่ม
-                          foregroundColor: Colors.white, // สีของข้อความบนปุ่ม
-                        ),
-                        child: const Text('Complete Order'),
-                      )
-                  ],
+                      child: const Text('Start Delivery'),
+                    ),
+                  if (currentOrder.state == OrderState.onDelivery)
+                    ElevatedButton(
+                      onPressed: stateController.isWithinRange.value
+                          ? () {
+                              // แสดง dialog แจ้งเตือน
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('แจ้งเตือน'),
+                                    content: const Text(
+                                        'โปรดถ่ายรูปยืนยันการส่งสินค้า'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context)
+                                              .pop(); // ปิด dialog เมื่อกดปุ่มยกเลิก
+                                        },
+                                        child: const Text('ยกเลิก'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          Get.back();
+                                          await _updateOrderState(
+                                              OrderState.completed);
+                                        },
+                                        child: const Text('ยืนยัน'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green, // สีพื้นหลังของปุ่ม
+                        foregroundColor: Colors.white, // สีของข้อความบนปุ่ม
+                      ),
+                      child: const Text('Complete Order'),
+                    )
+                ],
+              ),
+            ),
+            if (!stateController.isWithinRange.value)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'You must be within 20 meters of the ${currentOrder.state == OrderState.accepted ? "pickup" : "delivery"} location to proceed.',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
                 ),
               ),
-              if (!isWithinRange)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'You must be within 20 meters of the ${stateController.currentOrder.value!.state == OrderState.accepted ? "pickup" : "delivery"} location to proceed.',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildDeliveryStatus() {
