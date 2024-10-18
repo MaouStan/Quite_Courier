@@ -151,7 +151,14 @@ class AuthService {
       // update user data in user controller
       UserController userController = Get.find<UserController>();
       dev.log('userData.name: ${userData.name}');
-      userController.userData.value = userData;
+      userController.userData.update((UserData? value) {
+        if (value != null) {
+          value.name = userData.name;
+          value.profileImageUrl = profileImageUrl ?? userData.profileImageUrl;
+          value.location = userData.location;
+          value.addressDescription = userData.addressDescription;
+        }
+      });
       dev.log('userController.userData.value: ${userController.userData.value.toString()}');
       return AuthResponse(
           success: true, message: 'Profile updated successfully');
