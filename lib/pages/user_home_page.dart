@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
@@ -10,10 +11,59 @@ import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
 import 'package:quite_courier/pages/sender_list_view_page.dart';
 import 'package:quite_courier/pages/user_send_order.dart';
-import 'package:quite_courier/services/order_service.dart';
 import 'package:quite_courier/widget/appbar.dart';
 import 'package:quite_courier/widget/drawer.dart';
 import 'package:quite_courier/widget/listview.dart';
+
+class OrdersController extends GetxController {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final UserController userController = Get.find<UserController>();
+
+  final sentOrders = <OrderDataRes>[].obs;
+  final receivedOrders = <OrderDataRes>[].obs;
+
+  late StreamSubscription<QuerySnapshot> _sentOrdersSubscription;
+  late StreamSubscription<QuerySnapshot> _receivedOrdersSubscription;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initStreams();
+  }
+
+  void _initStreams() {
+    final userPhone = userController.userData.value.telephone;
+
+    // Subscribe to sent orders
+    _sentOrdersSubscription = _firestore
+        .collection('orders')
+        .where('senderTelephone', isEqualTo: userPhone)
+        .snapshots()
+        .listen((snapshot) {
+      sentOrders.value = snapshot.docs
+          .map((doc) => OrderDataRes.fromJson(doc.data(),doc.id))
+          .toList();
+    });
+
+    // Subscribe to received orders
+    _receivedOrdersSubscription = _firestore
+        .collection('orders')
+        .where('receiverTelephone', isEqualTo: userPhone)
+        .snapshots()
+        .listen((snapshot) {
+      receivedOrders.value = snapshot.docs
+          .map((doc) => OrderDataRes.fromJson(doc.data(),doc.id))
+          .toList();
+    });
+  }
+
+  @override
+  void onClose() {
+    _sentOrdersSubscription.cancel();
+    _receivedOrdersSubscription.cancel();
+    super.onClose();
+  }
+}
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
@@ -23,29 +73,9 @@ class UserHomePage extends StatefulWidget {
 }
 
 class _UserHomePageState extends State<UserHomePage> {
-  // final OrderController orderController = Get.find<OrderController>();
   final UserController userController = Get.find<UserController>();
-  final int orderLimit = 3; // Set the limit for displayed orders
-
-  Future<Map<String, List<OrderDataRes>>> fetchOrders() async {
-    try {
-      final sentOrders = await OrderService.getOrdersBySender(
-          userController.userData.value.telephone);
-      final receivedOrders = await OrderService.getOrdersByReceiver(
-          userController.userData.value.telephone);
-
-      return {
-        'sentOrders': sentOrders,
-        'receivedOrders': receivedOrders,
-      };
-    } catch (e) {
-      print('Error fetching orders: $e');
-      return {
-        'sentOrders': [],
-        'receivedOrders': [],
-      };
-    }
-  }
+  final OrdersController ordersController = Get.put(OrdersController());
+  final int orderLimit = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -54,67 +84,45 @@ class _UserHomePageState extends State<UserHomePage> {
       child: Scaffold(
         appBar: const CustomAppBar(),
         drawer: const MyDrawer(),
-        body: FutureBuilder<Map<String, List<OrderDataRes>>>(
-          future: fetchOrders(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
-            final sentOrders = snapshot.data!['sentOrders']!;
-            final receivedOrders = snapshot.data!['receivedOrders']!;
-      
-            return RefreshIndicator(
-              onRefresh: () async {
-                setState(() {});
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    children: [
-                      _buildUserInfoCard(
-                          sentOrders
-                              .where(
-                                  (order) => order.state != OrderState.completed)
-                              .toList(),
-                          receivedOrders
-                              .where(
-                                  (order) => order.state != OrderState.completed)
-                              .toList()),
-                      const SizedBox(height: 12),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                          onPressed: () {
-                            Get.to(() => MapPage(
-                                  mode: MapMode.tracks,
-                                  riderTelephones: sentOrders
-                                      .where((order) =>
-                                          (order.state == OrderState.accepted ||
-                                              order.state ==
-                                                  OrderState.onDelivery))
-                                      .map((order) => order.riderTelephone)
-                                      .toSet()
-                                      .toList(),
-                                ));
-                          },
-                          child: const Text('Track All')),
-                      _buildSentOrdersSection(sentOrders
-                          .where((order) => order.state != OrderState.completed)
-                          .toList()),
-                      _buildReceivedOrdersSection(receivedOrders
-                          .where((order) => order.state != OrderState.completed)
-                          .toList()),
-                    ],
+        body: Obx(() {
+          final activeOrders = ordersController.sentOrders
+              .where((order) => order.state != OrderState.completed)
+              .toList();
+          final activeReceivedOrders = ordersController.receivedOrders
+              .where((order) => order.state != OrderState.completed)
+              .toList();
+
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  _buildUserInfoCard(activeOrders, activeReceivedOrders),
+                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.to(() => MapPage(
+                        mode: MapMode.tracks,
+                        riderTelephones: activeOrders
+                          .where((order) => 
+                            (order.state == OrderState.accepted || 
+                             order.state == OrderState.onDelivery))
+                          .map((order) => order.riderTelephone)
+                          .toSet()
+                          .toList(),
+                      ));
+                    },
+                    child: const Text('Track All')
                   ),
-                ),
+                  _buildSentOrdersSection(activeOrders),
+                  _buildReceivedOrdersSection(activeReceivedOrders),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        }),
         floatingActionButton: SizedBox(
           width: 80,
           height: 80,
@@ -163,14 +171,12 @@ class _UserHomePageState extends State<UserHomePage> {
             children: [
               _buildStatItem(
                   'จัดส่งแล้ว',
-                  sentOrders
+                  ordersController.sentOrders
                       .where((order) => order.state == OrderState.completed)
                       .length),
               _buildStatItem(
                   'กำลังส่ง',
-                  sentOrders
-                      .where((order) => order.state != OrderState.completed)
-                      .length),
+                  sentOrders.length),
             ],
           ),
           const SizedBox(height: 8),
@@ -179,14 +185,12 @@ class _UserHomePageState extends State<UserHomePage> {
             children: [
               _buildStatItem(
                   'รับของแล้ว',
-                  receivedOrders
+                  ordersController.receivedOrders
                       .where((order) => order.state == OrderState.completed)
                       .length),
               _buildStatItem(
                   'ของกำลังมาส่ง',
-                  receivedOrders
-                      .where((order) => order.state != OrderState.completed)
-                      .length),
+                  receivedOrders.length),
             ],
           ),
         ],
@@ -217,7 +221,11 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
         OrderListView(
-            useIncomingData: false, orders: sentOrders, limit: orderLimit, userType: UserType.user,),
+            useIncomingData: false,
+            orders: sentOrders,
+            limit: orderLimit,
+            userType: UserType.user,
+        ),
       ],
     );
   }
@@ -245,7 +253,11 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
         OrderListView(
-            useIncomingData: true, orders: receivedOrders, limit: orderLimit, userType: UserType.user,),
+            useIncomingData: true,
+            orders: receivedOrders,
+            limit: orderLimit,
+            userType: UserType.user,
+        ),
       ],
     );
   }
