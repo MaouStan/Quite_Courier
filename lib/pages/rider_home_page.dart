@@ -51,8 +51,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   Future<void> _initialize() async {
     var myOrder = await OrderService.fetchOrderWithRiderAndState(
-        stateController.riderData.value.telephone,
-        [OrderState.accepted, OrderState.onDelivery]);
+        stateController.riderData.value.telephone, [OrderState.accepted, OrderState.onDelivery]);
     stateController.currentOrder.value =
         myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
@@ -210,6 +209,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
   Widget _buildOrderCard(OrderDataRes order) {
     return GestureDetector(
       onTap: () {
+        log(order.documentId.toString());
         Get.to(() => RiderOrderDetail(orderId: order.documentId));
       },
       child: Card(
@@ -308,102 +308,92 @@ class _RiderHomePageState extends State<RiderHomePage> {
     );
   }
 
-  void _acceptOrder(OrderDataRes order) {
-    Get.defaultDialog(
-      title: "ยืนยันการรับงาน",
-      middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
-      textConfirm: "ยืนยัน",
-      textCancel: "ยกเลิก",
-      confirmTextColor: Colors.white,
-      onConfirm: () async {
-        try {
-          // ใช้ Transaction เพื่อทำการอ่านและเขียนข้อมูลแบบ Atomic
-          bool success = await FirebaseFirestore.instance
-              .runTransaction((transaction) async {
-            // อ่านข้อมูลออเดอร์ภายใน transaction
-            DocumentSnapshot orderSnapshot = await transaction.get(
-                FirebaseFirestore.instance
-                    .collection('orders')
-                    .doc(order.documentId));
+void _acceptOrder(OrderDataRes order) {
+  // ดึงข้อมูลไรเดอร์จาก state ที่ login อยู่
+  final currentRider = stateController.riderData.value; // สมมติว่าเก็บข้อมูลไรเดอร์ไว้ใน state controller
 
-            // ตรวจสอบว่าออเดอร์ยังมีอยู่
-            if (!orderSnapshot.exists) {
-              throw Exception('Order not found');
-            }
+  Get.defaultDialog(
+    title: "ยืนยันการรับงาน",
+    middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
+    textConfirm: "ยืนยัน",
+    textCancel: "ยกเลิก",
+    confirmTextColor: Colors.white,
+    onConfirm: () async {
+      try {
+        bool success = await FirebaseFirestore.instance.runTransaction((transaction) async {
+          DocumentSnapshot orderSnapshot = await transaction.get(
+            FirebaseFirestore.instance.collection('orders').doc(order.documentId)
+          );
 
-            String currentOrderState = orderSnapshot['state'];
-
-            // ตรวจสอบสถานะออเดอร์
-            if (currentOrderState != OrderState.pending.name) {
-              throw Exception('Order already accepted');
-            }
-
-            // เตรียมข้อมูลที่จะอัพเดท
-            Map<String, dynamic> updateData = {
-              'state': OrderState.accepted.name,
-              'riderName': stateController.currentOrder.value!.riderName,
-              'riderTelephone':
-                  stateController.currentOrder.value!.riderTelephone,
-              'riderVehicleRegistration':
-                  stateController.currentOrder.value!.riderVehicleRegistration,
-              'acceptedAt': FieldValue.serverTimestamp(), // เพิ่มเวลาที่รับงาน
-            };
-
-            // ทำการอัพเดทข้อมูลภายใน transaction
-            transaction.update(
-                FirebaseFirestore.instance
-                    .collection('orders')
-                    .doc(order.documentId),
-                updateData);
-
-            return true;
-          });
-
-          if (success) {
-            // อัพเดทข้อมูลใน local state
-            order.state = OrderState.accepted;
-            order.riderName = stateController.currentOrder.value!.riderName;
-            order.riderTelephone =
-                stateController.currentOrder.value!.riderTelephone;
-            order.riderVehicleRegistration =
-                stateController.currentOrder.value!.riderVehicleRegistration;
-
-            stateController.currentOrder.value = order;
-            stateController.currentState.value = RiderOrderState.sendingOrder;
-
-            Get.back(); // ปิด dialog
-            setState(() {});
-
-            Get.snackbar(
-              'Success',
-              'รับงานสำเร็จ',
-              backgroundColor: Colors.green,
-              colorText: Colors.white,
-            );
+          if (!orderSnapshot.exists) {
+            throw Exception('Order not found');
           }
-        } catch (e) {
-          Get.back(); // ปิด dialog
 
-          // แสดงข้อความแจ้งเตือนตามสาเหตุที่ fail
-          if (e.toString().contains('Order already accepted')) {
-            Get.snackbar(
-              'Error',
-              'ไม่สามารถรับงานได้ งานนี้ถูกรับไปแล้ว',
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-            );
-          } else {
-            Get.snackbar(
-              'Error',
-              'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-            );
+          String currentOrderState = orderSnapshot['state'];
+
+          if (currentOrderState != OrderState.pending.name) {
+            throw Exception('Order already accepted');
           }
+
+          // อัพเดทสถานะและข้อมูลไรเดอร์จากที่ login อยู่
+          Map<String, dynamic> updateData = {
+            'state': OrderState.accepted.name,
+            'acceptedAt': FieldValue.serverTimestamp(),
+            'riderName': currentRider.name,
+            'riderTelephone': currentRider.telephone,
+            'riderVehicleRegistration': currentRider.vehicleRegistration,
+          };
+
+          transaction.update(
+            FirebaseFirestore.instance.collection('orders').doc(order.documentId),
+            updateData
+          );
+
+          return true;
+        });
+
+        if (success) {
+          // อัพเดทข้อมูลใน local
+          order.state = OrderState.accepted;
+          order.riderName = currentRider.name;
+          order.riderTelephone = currentRider.telephone;
+          order.riderVehicleRegistration = currentRider.vehicleRegistration;
+          
+          // อัพเดท state
+          stateController.currentOrder.value = order;
+          stateController.currentState.value = RiderOrderState.sendingOrder;
+
+          Get.back();
+          
+          Get.snackbar(
+            'Success',
+            'รับงานสำเร็จ',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
         }
-      },
-    );
-  }
+      } catch (e) {
+        Get.back();
+        
+        if (e.toString().contains('Order already accepted')) {
+          Get.snackbar(
+            'Error',
+            'ไม่สามารถรับงานได้ งานนี้ถูกรับไปแล้ว',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        } else {
+          Get.snackbar(
+            'Error',
+            'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      }
+    },
+  );
+}
 
   void _cancelOrder(OrderDataRes order) {
     // show loading
@@ -442,8 +432,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       image1 = await Utils().takePhoto();
     } else if (newState == OrderState.completed) {
       image2 = await Utils().takePhoto();
-      stateController
-          .stopLocationUpdates(); // Stop location updates when delivery is completed
+      stateController.stopLocationUpdates(); // Stop location updates when delivery is completed
     }
 
     if (image1 == null && image2 == null) {
@@ -457,6 +446,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         image1: image1,
         image2: image2,
         newState: newState);
+        
 
     if (success) {
       stateController.currentOrder.value!.state = newState;
@@ -501,7 +491,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
               currentOrder.state == OrderState.accepted
                   ? 'สถานที่รับของ' // Show this text if the order is accepted
                   : 'สถานที่ส่งของ', // Show this text if the order is on delivery
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             _buildMapSection(),
