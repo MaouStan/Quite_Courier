@@ -210,7 +210,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
   Widget _buildOrderCard(OrderDataRes order) {
     return GestureDetector(
       onTap: () {
-       
         Get.to(() => RiderOrderDetail(orderId: order.documentId));
       },
       child: Card(
@@ -310,52 +309,101 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   void _acceptOrder(OrderDataRes order) {
-  Get.defaultDialog(
-    title: "ยืนยันการรับงาน",
-    middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
-    textConfirm: "ยืนยัน",
-    textCancel: "ยกเลิก",
-    confirmTextColor: Colors.white,
-    onConfirm: () async {
-      // ตรวจสอบสถานะออเดอร์จาก Firestore อีกครั้ง
-      DocumentSnapshot orderSnapshot = await FirebaseFirestore.instance
-          .collection('orders')
-          .doc(order.documentId)
-          .get();
+    Get.defaultDialog(
+      title: "ยืนยันการรับงาน",
+      middleText: "คุณต้องการรับงานนี้ใช่หรือไม่?",
+      textConfirm: "ยืนยัน",
+      textCancel: "ยกเลิก",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        try {
+          // ใช้ Transaction เพื่อทำการอ่านและเขียนข้อมูลแบบ Atomic
+          bool success = await FirebaseFirestore.instance
+              .runTransaction((transaction) async {
+            // อ่านข้อมูลออเดอร์ภายใน transaction
+            DocumentSnapshot orderSnapshot = await transaction.get(
+                FirebaseFirestore.instance
+                    .collection('orders')
+                    .doc(order.documentId));
 
-      String currentOrderState = orderSnapshot['state'];
+            // ตรวจสอบว่าออเดอร์ยังมีอยู่
+            if (!orderSnapshot.exists) {
+              throw Exception('Order not found');
+            }
 
-      // ถ้าออเดอร์ยังไม่ได้ถูกกดรับ
-      if (currentOrderState == OrderState.pending.name) {
-        log('name : ${order.riderName}');
-        order.state = OrderState.accepted;
-        order.riderName = stateController.currentOrder.value!.riderName;
-        order.riderTelephone = stateController.currentOrder.value!.riderTelephone;
-        order.riderVehicleRegistration = stateController.currentOrder.value!.riderVehicleRegistration;
+            String currentOrderState = orderSnapshot['state'];
 
-        bool success = await OrderService.updateOrder(order, newState: OrderState.accepted);
-        if (success) {
-          stateController.currentOrder.value = order;
-        stateController.currentState.value = RiderOrderState.sendingOrder;
+            // ตรวจสอบสถานะออเดอร์
+            if (currentOrderState != OrderState.pending.name) {
+              throw Exception('Order already accepted');
+            }
+
+            // เตรียมข้อมูลที่จะอัพเดท
+            Map<String, dynamic> updateData = {
+              'state': OrderState.accepted.name,
+              'riderName': stateController.currentOrder.value!.riderName,
+              'riderTelephone':
+                  stateController.currentOrder.value!.riderTelephone,
+              'riderVehicleRegistration':
+                  stateController.currentOrder.value!.riderVehicleRegistration,
+              'acceptedAt': FieldValue.serverTimestamp(), // เพิ่มเวลาที่รับงาน
+            };
+
+            // ทำการอัพเดทข้อมูลภายใน transaction
+            transaction.update(
+                FirebaseFirestore.instance
+                    .collection('orders')
+                    .doc(order.documentId),
+                updateData);
+
+            return true;
+          });
+
+          if (success) {
+            // อัพเดทข้อมูลใน local state
+            order.state = OrderState.accepted;
+            order.riderName = stateController.currentOrder.value!.riderName;
+            order.riderTelephone =
+                stateController.currentOrder.value!.riderTelephone;
+            order.riderVehicleRegistration =
+                stateController.currentOrder.value!.riderVehicleRegistration;
+
+            stateController.currentOrder.value = order;
+            stateController.currentState.value = RiderOrderState.sendingOrder;
+
+            Get.back(); // ปิด dialog
+            setState(() {});
+
+            Get.snackbar(
+              'Success',
+              'รับงานสำเร็จ',
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
+            );
+          }
+        } catch (e) {
           Get.back(); // ปิด dialog
-          setState(() {});
-        } else {
-          Get.snackbar('Error', 'Failed to accept order. Please try again.');
-        }
-      } else {
-        // ถ้าออเดอร์ถูกกดรับไปแล้ว
-       // ถ้าออเดอร์ถูกกดรับไปแล้ว
-        Get.snackbar(
-          'Error', 
-          'ไม่สามารถรับงานได้ งานนี้ถูกรับไปแล้ว', 
-          backgroundColor: Colors.red,  // แสดง snackbar สีแดง
-          colorText: Colors.white,      // สีข้อความ
-        );
-      }
-    },
-  );
-}
 
+          // แสดงข้อความแจ้งเตือนตามสาเหตุที่ fail
+          if (e.toString().contains('Order already accepted')) {
+            Get.snackbar(
+              'Error',
+              'ไม่สามารถรับงานได้ งานนี้ถูกรับไปแล้ว',
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+          } else {
+            Get.snackbar(
+              'Error',
+              'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+          }
+        }
+      },
+    );
+  }
 
   void _cancelOrder(OrderDataRes order) {
     // show loading
