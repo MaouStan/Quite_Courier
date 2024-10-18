@@ -77,8 +77,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         .snapshots()
         .listen((snapshot) {
       if (snapshot.exists) {
-        final updatedOrder =
-            OrderDataRes.fromJson(snapshot.data()!, snapshot.id);
+        final updatedOrder = OrderDataRes.fromJson(snapshot.data()!, snapshot.id);
         stateController.currentOrder.value = updatedOrder;
         setState(() {});
       }
@@ -338,6 +337,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   void _cancelOrder(OrderDataRes order) {
+    // show loading
     Get.defaultDialog(
       title: "ยืนยันการยกเลิกงาน",
       middleText: "คุณต้องการยกเลิกงานนี้ใช่หรือไม่?",
@@ -345,6 +345,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       textCancel: "ยกเลิก",
       confirmTextColor: Colors.white,
       onConfirm: () async {
+        Get.dialog(const Center(child: CircularProgressIndicator()));
         order.state = OrderState.pending;
         order.riderName = '';
         order.riderTelephone = '';
@@ -355,9 +356,12 @@ class _RiderHomePageState extends State<RiderHomePage> {
           stateController.currentState.value = RiderOrderState.waitGetOrder;
           stateController
               .stopLocationUpdates(); // Stop location updates when canceling an order
-          Get.back(); // Close dialog
-          setState(() {});
         }
+        Get.back(); // Close dialog
+        Get.back(); // Close dialog
+        setState(() {});
+      },
+      onCancel: () {
       },
     );
   }
@@ -370,8 +374,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       image1 = await Utils().takePhoto();
     } else if (newState == OrderState.completed) {
       image2 = await Utils().takePhoto();
-      stateController
-          .stopLocationUpdates(); // Stop location updates when delivery is completed
+      stateController.stopLocationUpdates(); // Stop location updates when delivery is completed
     }
 
     if (image1 == null && image2 == null) {
@@ -467,6 +470,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                                         TextButton(
                                           child: const Text('ตกลง'),
                                           onPressed: () async {
+                                            Get.back();
                                             await _updateOrderState(
                                                 OrderState.onDelivery);
                                             // Get.to(() => RiderOrderDetail(
@@ -515,11 +519,10 @@ class _RiderHomePageState extends State<RiderHomePage> {
                                           child: const Text('ยกเลิก'),
                                         ),
                                         TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context)
-                                                .pop(); // ปิด dialog แล้วไปทำการอัปเดตสถานะคำสั่งซื้อ
-                                            _updateOrderState(OrderState
-                                                .completed); // เปลี่ยนสถานะคำสั่งซื้อ
+                                          onPressed: () async {
+                                            Get.back();
+                                            await _updateOrderState(
+                                                OrderState.completed);
                                           },
                                           child: const Text('ยืนยัน'),
                                         ),

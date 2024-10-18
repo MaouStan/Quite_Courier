@@ -105,9 +105,31 @@ class OrderDetailContent extends StatelessWidget {
                   const SizedBox(height: 8),
                   _buildDeliveryImage(updatedOrder),
                   const SizedBox(height: 12),
-                  Text(order.description,
-                      style: TextStyle(
-                          fontSize: Get.textTheme.bodyMedium!.fontSize)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'รายละเอียด:',
+                          style: TextStyle(
+                            fontSize: Get.textTheme.titleMedium!.fontSize,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          order.description,
+                          style: TextStyle(
+                            fontSize: Get.textTheme.bodyMedium!.fontSize,
+                          ),
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 20.0),
                   Text(
                     order.receiverTelephone !=
@@ -265,7 +287,7 @@ class OrderDetailContent extends StatelessWidget {
         border: Border.all(color: const Color(0xFFA77C0E), width: 2),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: ClipRRect(
+      child: imageUrl.isNotEmpty ? ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.network(
           imageUrl,
@@ -280,9 +302,10 @@ class OrderDetailContent extends StatelessWidget {
               child: Icon(Icons.image_not_supported, color: Colors.grey[600]),
             );
           },
-        ),
-      ),
-    );
+            ),
+          )
+            : null,
+      );
   }
 
   Widget _buildRecipientDetails(OrderDataRes order) {
@@ -361,25 +384,30 @@ class OrderDetailContent extends StatelessWidget {
 
   Widget _buildAddressDescription(OrderDataRes order) {
     return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(
-              width: 30,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(width: 30),
+          Text(
+            'ที่อยู่ : ',
+            style: TextStyle(
+              fontSize: Get.textTheme.titleMedium!.fontSize,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple.shade600,
             ),
-            Text(
-              'ที่อยู่ : ',
-              style: TextStyle(
-                  fontSize: Get.textTheme.titleMedium!.fontSize,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple.shade600),
-            ),
-            Text(
+          ),
+          Expanded(
+            child: Text(
               order.receiverAddress,
-            )
-          ],
-        ));
+              style: TextStyle(fontSize: Get.textTheme.bodyMedium!.fontSize),
+              softWrap: true,
+              overflow: TextOverflow.visible,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildMapButton(OrderDataRes order) {
