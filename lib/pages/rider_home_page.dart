@@ -156,11 +156,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                   // Handle the error by setting a placeholder icon
                   return;
                 },
-                child: const Icon(
-                  Icons.person,
-                  size: 60,
-                  color: Colors.grey,
-                ),
+
               ),
               const SizedBox(width: 12),
               Text(stateController.riderData.value.name,
