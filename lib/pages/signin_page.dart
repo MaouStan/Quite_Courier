@@ -48,6 +48,7 @@ class _SigninPageState extends State<SigninPage> {
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
+      return; // Exit the function early
     } else if (!telephoneRegExp.hasMatch(telephone)) {
       // Check if telephone is valid
       Get.snackbar(
@@ -57,96 +58,110 @@ class _SigninPageState extends State<SigninPage> {
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
       );
-    } else {
-      // Proceed with sign in logic using Firebase
-      try {
-        var isUser = true;
-        // Query Firestore for the user with the matching phone number
-        var userQuery = await FirebaseFirestore.instance
-            .collection('users')
+      return; // Exit the function early
+    }
+
+    // Show loading dialog
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+
+    // Proceed with sign in logic using Firebase
+    try {
+      var isUser = true;
+      // Query Firestore for the user with the matching phone number
+      var userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('telephone', isEqualTo: telephone)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        isUser = false;
+        userQuery = await FirebaseFirestore.instance
+            .collection('riders')
             .where('telephone', isEqualTo: telephone)
             .get();
+      }
 
-        if (userQuery.docs.isEmpty) {
-          isUser = false;
-          userQuery = await FirebaseFirestore.instance
-              .collection('riders')
-              .where('telephone', isEqualTo: telephone)
-              .get();
-        }
+      if (userQuery.docs.isNotEmpty) {
+        var userDoc = userQuery.docs.first;
+        var userData = userDoc.data();
 
-        if (userQuery.docs.isNotEmpty) {
-          var userDoc = userQuery.docs.first;
-          var userData = userDoc.data();
+        // Check if password matches
+        if (userData['password'] == password) {
+          log('successfully');
+          log(telephone);
 
-          // Check if password matches
-          if (userData['password'] == password) {
-            log('succesfully');
-            log(telephone);
-
-            if (isUser) {
-              // Update User Controller to store user data
-              Get.find<UserController>().userData.value = UserData(
-                profileImageUrl: userData['profileImageUrl'],
-                telephone: userData['telephone'],
-                name: userData['name'],
-                location: LatLng(userData['location']['latitude'],
-                    userData['location']['longitude']),
-                addressDescription: userData['addressDescription'],
-              );
-              Get.to(
-                () => const UserHomePage(), // Replace this with the target page
-                transition: Transition.noTransition,
-              );
-              log(Get.find<UserController>().userData.value.toString());
-            } else {
-              Get.find<RiderController>().riderData.value = RiderData(
-                profileImageUrl: userData['profileImageUrl'],
-                name: userData['name'],
-                telephone: userData['telephone'],
-                vehicleImage: userData['vehicleImage'],
-                vehicleRegistration: userData['vehicleRegistration'],
-                location: LatLng(userData['location']['latitude'],
-                    userData['location']['longitude']),
-              );
-              Get.find<RiderController>()
-                  .updateRiderData(Get.find<RiderController>().riderData.value);
-              Get.to(
-                () =>
-                    const RiderHomePage(), // Replace this with the target page
-              );
-              log(Get.find<RiderController>().riderData.value.toString());
-            }
-          } else {
-            // Password incorrect
-            Get.snackbar(
-              'Incorrect Password',
-              'The password you entered is incorrect.',
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-              snackPosition: SnackPosition.TOP,
+          if (isUser) {
+            // Update User Controller to store user data
+            Get.find<UserController>().userData.value = UserData(
+              profileImageUrl: userData['profileImageUrl'],
+              telephone: userData['telephone'],
+              name: userData['name'],
+              location: LatLng(userData['location']['latitude'],
+                  userData['location']['longitude']),
+              addressDescription: userData['addressDescription'],
             );
+            Get.back(); // Close loading dialog
+            Get.to(
+              () => const UserHomePage(), // Replace this with the target page
+              transition: Transition.noTransition,
+            );
+            log(Get.find<UserController>().userData.value.toString());
+          } else {
+            Get.find<RiderController>().riderData.value = RiderData(
+              profileImageUrl: userData['profileImageUrl'],
+              name: userData['name'],
+              telephone: userData['telephone'],
+              vehicleImage: userData['vehicleImage'],
+              vehicleRegistration: userData['vehicleRegistration'],
+              location: LatLng(userData['location']['latitude'],
+                  userData['location']['longitude']),
+            );
+            Get.find<RiderController>()
+                .updateRiderData(Get.find<RiderController>().riderData.value);
+            Get.back(); // Close loading dialog
+            Get.to(
+              () => const RiderHomePage(), // Replace this with the target page
+            );
+            log(Get.find<RiderController>().riderData.value.toString());
           }
         } else {
-          // User not found
+          // Password incorrect
+          Get.closeAllSnackbars();
+          Get.back(); // Close loading dialog
           Get.snackbar(
-            'User Not Found',
-            'No user found with this telephone number.',
+            'Incorrect Password',
+            'The password you entered is incorrect.',
             backgroundColor: Colors.red,
             colorText: Colors.white,
             snackPosition: SnackPosition.TOP,
           );
         }
-      } catch (e) {
-        // Handle errors
+      } else {
+        Get.closeAllSnackbars();
+        // User not found
+        Get.back(); // Close loading dialog
         Get.snackbar(
-          'Error',
-          'An error occurred while signing in. Please try again. $e',
+          'User Not Found',
+          'No user found with this telephone number.',
           backgroundColor: Colors.red,
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
         );
       }
+    } catch (e) {
+      // Handle errors
+      Get.closeAllSnackbars();
+      Get.back(); // Close loading dialog
+      Get.snackbar(
+        'Error',
+        'An error occurred while signing in. Please try again. $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
     }
   }
 
