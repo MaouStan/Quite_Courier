@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:quite_courier/models/order_data_res.dart';
@@ -9,6 +11,7 @@ import 'dart:async';
 import 'package:quite_courier/services/auth_service.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
+import 'package:geolocator/geolocator.dart';
 
 enum RiderOrderState { waitGetOrder, sendingOrder }
 
@@ -39,8 +42,9 @@ class RiderController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    startLocationUpdates();
+    _startLocationUpdates();
     _startOrderCountStream();
+    log('RiderController initialized');
   }
 
   @override
@@ -48,20 +52,33 @@ class RiderController extends GetxController {
     stopLocationUpdates();
     _stopOrderCountStream();
     super.onClose();
+    log('RiderController closed');
   }
 
-  void startLocationUpdates() {
-    _locationUpdateTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+  void _startLocationUpdates() {
+    LatLng? lastPosition;
+    _locationUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (riderData.value.telephone.isNotEmpty) {
         LatLng position = await GeolocatorServices.getCurrentLocation();
+        log('position: ${position.toString()}');
 
-        bool updated = await _authService.updateRiderLocation(
-            riderData.value.telephone, position);
-
-        if (updated) {
-          riderData.update((val) {
-            val?.location = position;
-          });
+        if (lastPosition == null || 
+            Geolocator.distanceBetween(
+              lastPosition!.latitude, 
+              lastPosition!.longitude, 
+              position.latitude, 
+              position.longitude
+            ) > 10) { // Only update if moved more than 10 meters
+          bool updated = await _authService.updateRiderLocation(riderData.value.telephone, position);
+          if (updated) {
+            riderData.update((val) {
+              val?.location = position;
+            });
+            log('Rider location updated: ${position.latitude}, ${position.longitude}');
+            lastPosition = position;
+          } else {
+            log('Failed to update rider location');
+          }
         }
       }
     });
@@ -134,5 +151,6 @@ class RiderController extends GetxController {
     riderData.value = newData;
     _stopOrderCountStream(); // Stop the existing stream
     _startOrderCountStream(); // Start a new stream with the updated telephone
+    log(riderData.value.toString());
   }
 }

@@ -109,7 +109,6 @@ class _SigninPageState extends State<SigninPage> {
                 location: LatLng(userData['location']['latitude'],
                     userData['location']['longitude']),
               );
-
               Get.find<RiderController>()
                   .updateRiderData(Get.find<RiderController>().riderData.value);
               Get.to(

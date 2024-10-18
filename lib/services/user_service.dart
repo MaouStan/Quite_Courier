@@ -61,5 +61,19 @@ class UserService {
     return positions;
   }
 
+  static Stream<LatLng> getRiderPositionStream(String riderTelephone) {
+    return FirebaseFirestore.instance
+        .collection('riders')
+        .doc(riderTelephone)
+        .snapshots()
+        .map((snapshot) {
+      final data = snapshot.data() as Map<String, dynamic>?;
+      if (data != null && data['location'] != null) {
+        final LatLng position = LatLng(data['location']['latitude'], data['location']['longitude']);
+        return position;
+      }
+      return const LatLng(0, 0); // Default position if data is not available
+    });
+  }
 
 }

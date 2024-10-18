@@ -77,7 +77,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
         .snapshots()
         .listen((snapshot) {
       if (snapshot.exists) {
-        final updatedOrder = OrderDataRes.fromJson(snapshot.data()!, snapshot.id);
+        final updatedOrder =
+            OrderDataRes.fromJson(snapshot.data()!, snapshot.id);
         stateController.currentOrder.value = updatedOrder;
         setState(() {});
       }
@@ -325,8 +326,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
         if (success) {
           stateController.currentOrder.value = order;
           stateController.currentState.value = RiderOrderState.sendingOrder;
-          stateController
-              .startLocationUpdates(); // Start location updates when accepting an order
           Get.back(); // Close dialog
           setState(() {});
         } else {
@@ -361,8 +360,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
         Get.back(); // Close dialog
         setState(() {});
       },
-      onCancel: () {
-      },
+      onCancel: () {},
     );
   }
 
@@ -374,7 +372,8 @@ class _RiderHomePageState extends State<RiderHomePage> {
       image1 = await Utils().takePhoto();
     } else if (newState == OrderState.completed) {
       image2 = await Utils().takePhoto();
-      stateController.stopLocationUpdates(); // Stop location updates when delivery is completed
+      stateController
+          .stopLocationUpdates(); // Stop location updates when delivery is completed
     }
 
     if (image1 == null && image2 == null) {
@@ -395,11 +394,11 @@ class _RiderHomePageState extends State<RiderHomePage> {
         stateController.currentState.value = RiderOrderState.waitGetOrder;
         _fetchPendingOrders();
       }
-      setState(() {});
     } else {
       Get.snackbar('Error', 'Failed to update order state. Please try again.');
     }
     Get.back();
+    setState(() {});
   }
 
   Widget _buildSendingOrderSection() {
