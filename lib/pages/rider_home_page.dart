@@ -316,6 +316,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       textCancel: "ยกเลิก",
       confirmTextColor: Colors.white,
       onConfirm: () async {
+        log('name : ${order.riderName}');
         order.state = OrderState.accepted;
         order.riderName = stateController.riderData.value.name;
         order.riderTelephone = stateController.riderData.value.telephone;

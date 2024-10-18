@@ -39,7 +39,8 @@ class OrderService {
       QuerySnapshot orderDoc = await firestore
           .collection('orders')
           .where('riderTelephone', isEqualTo: riderTelephone)
-          .where('state', whereIn: orderStates.map((state) => state.toString()).toList())
+          .where('state',
+              whereIn: orderStates.map((state) => state.toString()).toList())
           .get();
 
       var orders = orderDoc.docs.map((doc) {
@@ -200,11 +201,16 @@ class OrderService {
       FirebaseFirestore firestore = FirebaseFirestore.instance;
       Map<String, dynamic> updateData = {
         'state': newState?.name ?? order.state.name,
+        'riderName': order.riderName,
+        'riderTelephone': order.riderTelephone,
+        'riderVehicleRegistration':
+           order.riderVehicleRegistration,
       };
 
       // Handle image uploads
       if (image1 != null || image2 != null) {
-        Map<String, dynamic> imageUpdateData = await _uploadImages(order.documentId, image1, image2);
+        Map<String, dynamic> imageUpdateData =
+            await _uploadImages(order.documentId, image1, image2);
         updateData.addAll(imageUpdateData);
       }
 
@@ -225,15 +231,18 @@ class OrderService {
     }
   }
 
-  static Future<Map<String, dynamic>> _uploadImages(String orderId, File? image1, File? image2) async {
+  static Future<Map<String, dynamic>> _uploadImages(
+      String orderId, File? image1, File? image2) async {
     Map<String, dynamic> imageUpdateData = {};
 
     if (image1 != null) {
-      String? imageUrl1 = await _firebaseService.uploadImage(image1, 'order_images/$orderId/2');
+      String? imageUrl1 =
+          await _firebaseService.uploadImage(image1, 'order_images/$orderId/2');
       if (imageUrl1 != null) imageUpdateData['riderOrderPhoto1'] = imageUrl1;
     }
     if (image2 != null) {
-      String? imageUrl2 = await _firebaseService.uploadImage(image2, 'order_images/$orderId/3');
+      String? imageUrl2 =
+          await _firebaseService.uploadImage(image2, 'order_images/$orderId/3');
       if (imageUrl2 != null) imageUpdateData['riderOrderPhoto2'] = imageUrl2;
     }
 
@@ -249,14 +258,15 @@ class OrderService {
           .asyncMap((orderSnapshot) async {
         // เพิ่ม log เพื่อดีบัก
         log("Fetching order details for ID: $orderId");
-        
+
         if (!orderSnapshot.exists) {
           log("Order not found: $orderId");
           // throw Exception('Order not found');
           Get.snackbar('Error', 'Failed to fetch order details');
         }
 
-        Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
+        Map<String, dynamic> orderData =
+            orderSnapshot.data() as Map<String, dynamic>;
 
         // ตรวจสอบค่าว่างของเบอร์โทรศัพท์
         String riderTelephone = orderData['riderTelephone'] ?? '';
@@ -292,7 +302,8 @@ class OrderService {
     }
   }
 
-  static Future<String> _fetchUserProfileImage(String collection, String telephone) async {
+  static Future<String> _fetchUserProfileImage(
+      String collection, String telephone) async {
     try {
       if (telephone.isEmpty) {
         log("Empty telephone number for collection: $collection");
@@ -309,10 +320,10 @@ class OrderService {
         return '';
       }
 
-      final profileImageUrl = (snapshot.data() as Map<String, dynamic>)['profileImageUrl'] ?? '';
+      final profileImageUrl =
+          (snapshot.data() as Map<String, dynamic>)['profileImageUrl'] ?? '';
       log("Retrieved profile image for $telephone: $profileImageUrl");
       return profileImageUrl;
-      
     } catch (e) {
       log("Error fetching profile image for $telephone in $collection: $e");
       return ''; // คืนค่าว่างในกรณีที่เกิดข้อผิดพลาด
