@@ -154,6 +154,7 @@ class MyDrawer extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         Navigator.popUntil(context, (route) => route.isFirst);
+                        Get.find<RiderController>().onClose();
                       },
                       child: const Text('Logout'),
                     ),

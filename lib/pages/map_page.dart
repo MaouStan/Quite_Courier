@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:quite_courier/models/map_track_req.dart';
 import 'package:quite_courier/services/geolocator_services.dart';
 import 'package:quite_courier/services/map_service.dart';
 import 'package:quite_courier/services/user_service.dart';
@@ -83,12 +84,10 @@ class SelectModeHandler extends MapModeHandler {
 class RouteModeHandler extends MapModeHandler {
   final String riderTelephone;
   final StreamController<void> updateController;
-  final bool focusOnRider;
   final LatLng orderPosition;
 
   RouteModeHandler(
-      this.riderTelephone, this.updateController, this.orderPosition,
-      {this.focusOnRider = false}) {
+      this.riderTelephone, this.updateController, this.orderPosition) {
     _initializePositions();
   }
 
@@ -144,7 +143,8 @@ class RouteModeHandler extends MapModeHandler {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.directions_bike, color: Colors.red, size: 40),
+                        const Icon(Icons.directions_bike,
+                            color: Colors.red, size: 40),
                         Text(
                           riderTelephone,
                           style: const TextStyle(
@@ -187,11 +187,7 @@ class RouteModeHandler extends MapModeHandler {
   void _updateRoute() async {
     if (myPosition != null && riderPosition != null) {
       try {
-        // if(focusOnRider){
         route = await MapService.fetchRoute(riderPosition!, orderPosition);
-        // }else{
-        // route = await MapService.fetchRoute(myPosition!, riderPosition!);
-        // }
         updateController.add(null); // Trigger update
       } catch (e) {
         log('Error fetching route: $e');
@@ -207,26 +203,21 @@ class RouteModeHandler extends MapModeHandler {
 }
 
 class TracksModeHandler extends MapModeHandler {
-  final List<String> riderTelephones;
+  List<MapTrackReqOrder> orders;
   final StreamController<void> updateController;
 
-  TracksModeHandler(this.riderTelephones, this.updateController) {
-    dev.log('TracksModeHandler created for riderTelephones: $riderTelephones');
+  TracksModeHandler(this.orders, this.updateController) {
+    dev.log('TracksModeHandler created for orders: ${orders.length}');
     _initializePositions();
-    _startTimer();
-    allowUpdate = false;
   }
 
-  Timer? _timer;
   LatLng? myPosition;
-  Map<String, LatLng> riderPositions = {};
-  Map<String, List<LatLng>> routes = {};
   bool _isMapReady = false;
   bool _isLoading = true;
   bool _isDisposed = false;
-  bool allowUpdate = false; // {{ edit_6: Declare allowUpdate }}
+  Timer? _updateTimer;
+  Map<String, List<LatLng>> routes = {};
 
-  // {{ edit_5: Define a static list of colors }}
   static final List<Color> _colorOptions = [
     Colors.blue,
     Colors.red,
@@ -240,22 +231,15 @@ class TracksModeHandler extends MapModeHandler {
     Colors.lime,
   ];
 
-  // {{ edit_6: Assign colors to each riderTelephone }}
   final Map<String, Color> _riderColors = {};
 
   Color getColorForRider(String riderTelephone) {
-    if (_riderColors.containsKey(riderTelephone)) {
-      return _riderColors[riderTelephone]!;
-    } else {
-      int hash = riderTelephone.hashCode;
-      int index = hash % _colorOptions.length;
-      Color color = _colorOptions[index].withOpacity(0.7);
-      _riderColors[riderTelephone] = color;
-      return color;
+    if (!_riderColors.containsKey(riderTelephone)) {
+      int index = _riderColors.length % _colorOptions.length;
+      _riderColors[riderTelephone] = _colorOptions[index].withOpacity(0.7);
     }
+    return _riderColors[riderTelephone]!;
   }
-
-  Timer? _myPositionTimer;
 
   @override
   Widget buildMap(BuildContext context, LatLng initialPosition,
@@ -280,55 +264,51 @@ class TracksModeHandler extends MapModeHandler {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             ),
-            ...routes.entries.map((entry) => PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: entry.value,
-                      strokeWidth: 3.0,
-                      color: getColorForRider(entry.key),
-                    ),
-                  ],
-                )),
+            PolylineLayer(
+              polylines: routes.entries.map((entry) {
+                return Polyline(
+                  points: entry.value,
+                  strokeWidth: 3.0,
+                  color: getColorForRider(entry.key),
+                );
+              }).toList(),
+            ),
             MarkerLayer(
               markers: [
-                if (myPosition != null)
-                  Marker(
-                    width: 80.0,
-                    height: 80.0,
-                    point: myPosition!,
-                    child: const Icon(Icons.person_pin_circle,
-                        color: Colors.green, size: 40),
-                  ),
-                ...riderTelephones.map((riderTelephone) {
-                  LatLng riderPosition =
-                      riderPositions[riderTelephone] ?? const LatLng(0, 0);
-                  Color riderColor = _riderColors[riderTelephone] ??
-                      getColorForRider(riderTelephone);
-                  return Marker(
-                    width: 80.0,
-                    height: 80.0,
-                    point: riderPosition,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.directions_bike,
-                            color: riderColor, size: 30),
-                        Padding(
-                          padding: const EdgeInsets.all(2.0),
-                          child: Text(
-                            riderTelephone,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              backgroundColor: Colors.white70,
-                              fontSize: 12,
-                            ),
+                ...orders.expand((order) => [
+                      Marker(
+                        width: 80.0,
+                        height: 80.0,
+                        point: order.orderPosition,
+                        child: Icon(Icons.inventory_2_outlined,
+                            color: getColorForRider(order.riderTelephone), size: 40),
+                      ),
+                      if (order.riderPosition != null)
+                        Marker(
+                          width: 80.0,
+                          height: 80.0,
+                          point: order.riderPosition!,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.directions_bike,
+                                  color: getColorForRider(order.riderTelephone), size: 30),
+                              Padding(
+                                padding: const EdgeInsets.all(2.0),
+                                child: Text(
+                                  order.riderTelephone,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    backgroundColor: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
-                }),
+                    ]),
               ],
             ),
           ],
@@ -342,9 +322,8 @@ class TracksModeHandler extends MapModeHandler {
     try {
       myPosition = await GeolocatorServices.getCurrentLocation();
       _isLoading = false;
-      updateController.add(null); // Trigger initial update
-      _startMyPositionTimer();
-      _startTimer();
+      updateController.add(null);
+      _startUpdateTimer();
       dev.log('Initialized positions');
     } catch (e) {
       _isLoading = false;
@@ -353,73 +332,56 @@ class TracksModeHandler extends MapModeHandler {
     }
   }
 
-  void _startMyPositionTimer() {
-    _myPositionTimer =
-        Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (_isDisposed || !_isMapReady) {
-        return;
-      }
-      try {
-        LatLng newPosition = await GeolocatorServices.getCurrentLocation();
-        if (newPosition != myPosition) {
-          myPosition = newPosition;
-          updateController.add(null); // Trigger update
-        }
-      } catch (e) {
-        dev.log('Error updating myPosition: $e');
-      }
+  void _startUpdateTimer() {
+    dev.log('Starting TracksModeHandler timer');
+    _updateTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (_isDisposed || !_isMapReady) return;
+      await _updateRiderPositionsAndRoutes();
     });
   }
 
-  void _startTimer() {
-    dev.log('Starting TracksModeHandler timer');
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (_isDisposed || !_isMapReady) {
-        return;
-      }
-      try {
-        Map<String, LatLng> riderPos =
-            await UserService.fetchRiderPositions(riderTelephones);
-        dev.log('${DateTime.now()} Updated rider positions');
-        riderPositions = riderPos;
-        updateController.add(null); // Trigger update
+  Future<void> _updateRiderPositionsAndRoutes() async {
+    try {
+      List<String> riderTelephones = orders.map((order) => order.riderTelephone).toList();
+      Map<String, LatLng> newRiderPositions =
+          await UserService.fetchRiderPositions(riderTelephones);
 
-        if (Get.currentRoute != '/MapPage') {
-          timer.cancel();
+      for (var order in orders) {
+        LatLng? newRiderPosition = newRiderPositions[order.riderTelephone];
+        if (newRiderPosition != null && newRiderPosition != order.riderPosition) {
+          order.riderPosition = newRiderPosition;
+          routes[order.riderTelephone] = await MapService.fetchRoute(newRiderPosition, order.orderPosition);
         }
-      } catch (e) {
-        dev.log('Error updating rider positions: $e');
       }
-    });
+      updateController.add(null);
+    } catch (e) {
+      dev.log('Error updating rider positions and routes: $e');
+    }
   }
 
   @override
   void stop() {
-    dev.log('Stopping TracksModeHandler timers');
+    dev.log('Stopping TracksModeHandler timer');
     _isDisposed = true;
-    _timer?.cancel();
-    _myPositionTimer?.cancel();
+    _updateTimer?.cancel();
   }
 }
 
 class MapPage extends StatefulWidget {
   final MapMode mode;
   final String? riderTelephone;
-  final List<String>? riderTelephones;
-  final bool focusOnRider;
   final LatLng? orderPosition;
+  final List<MapTrackReqOrder>? orders;
   final LatLng? selectedPosition;
-  final bool update;
 
-  const MapPage(
-      {super.key,
-      this.mode = MapMode.select,
-      this.riderTelephone,
-      this.riderTelephones,
-      this.focusOnRider = false,
-      this.orderPosition,
-      this.selectedPosition,
-      this.update = true});
+  const MapPage({
+    super.key,
+    this.mode = MapMode.select,
+    this.riderTelephone,
+    this.orderPosition,
+    this.orders,
+    this.selectedPosition,
+  });
 
   @override
   _MapPageState createState() => _MapPageState();
@@ -443,8 +405,7 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     _determinePosition();
     _selectedPosition = widget.selectedPosition ?? const LatLng(0.0, 0.0);
-    modeHandler =
-        _getModeHandler(widget.mode, widget.focusOnRider, widget.orderPosition);
+    modeHandler = _getModeHandler(widget.mode);
   }
 
   @override
@@ -486,35 +447,35 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  MapModeHandler _getModeHandler(
-      MapMode mode, bool focusOnRider, LatLng? orderPosition) {
+  MapModeHandler _getModeHandler(MapMode mode) {
     switch (mode) {
       case MapMode.route:
-        if (widget.riderTelephone == null) {
-          Get.snackbar(
-              'Error', 'riderTelephone must be provided for RouteMode');
+        if (widget.riderTelephone == null || widget.orderPosition == null) {
+          Get.snackbar('Error',
+              'riderTelephone and orderPosition must be provided for RouteMode');
+          return SelectModeHandler(_onSelectPosition, _updateController);
         }
-
         return RouteModeHandler(
           widget.riderTelephone!,
           _updateController,
-          orderPosition ?? const LatLng(0, 0),
-          focusOnRider: focusOnRider,
+          widget.orderPosition!,
         );
       case MapMode.tracks:
-        if (widget.riderTelephones == null) {
-          Get.snackbar(
-              'Error', 'riderTelephones must be provided for TracksMode');
+        if (widget.orders == null || widget.orders!.isEmpty) {
+          Get.snackbar('Error', 'orders must be provided for TracksMode');
+          return SelectModeHandler(_onSelectPosition, _updateController);
         }
-        return TracksModeHandler(widget.riderTelephones!, _updateController);
+        return TracksModeHandler(widget.orders!, _updateController);
       case MapMode.select:
       default:
-        return SelectModeHandler((LatLng newPosition) {
-          setState(() {
-            _selectedPosition = newPosition;
-          });
-        }, _updateController);
+        return SelectModeHandler(_onSelectPosition, _updateController);
     }
+  }
+
+  void _onSelectPosition(LatLng newPosition) {
+    setState(() {
+      _selectedPosition = newPosition;
+    });
   }
 
   @override

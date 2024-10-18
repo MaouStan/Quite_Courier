@@ -673,7 +673,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
               riderTelephone:
                   stateController.currentOrder.value!.riderTelephone,
               orderPosition: orderPosition,
-              focusOnRider: true,
             ));
       },
       child: SizedBox(
@@ -682,8 +681,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
           mode: MapMode.route,
           riderTelephone: stateController.currentOrder.value!.riderTelephone,
           orderPosition: orderPosition,
-          focusOnRider: true,
-          update: true, // Set this to true for real-time updates
         ),
       ),
     );

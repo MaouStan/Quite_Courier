@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quite_courier/controller/user_controller.dart';
 import 'package:quite_courier/interfaces/order_state.dart';
 import 'package:quite_courier/interfaces/user_types.dart';
+import 'package:quite_courier/models/map_track_req.dart';
 import 'package:quite_courier/models/order_data_res.dart';
 import 'package:quite_courier/pages/map_page.dart';
 import 'package:quite_courier/pages/reciever_list_view_page.dart';
@@ -41,7 +42,7 @@ class OrdersController extends GetxController {
         .snapshots()
         .listen((snapshot) {
       sentOrders.value = snapshot.docs
-          .map((doc) => OrderDataRes.fromJson(doc.data(),doc.id))
+          .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
           .toList();
     });
 
@@ -52,7 +53,7 @@ class OrdersController extends GetxController {
         .snapshots()
         .listen((snapshot) {
       receivedOrders.value = snapshot.docs
-          .map((doc) => OrderDataRes.fromJson(doc.data(),doc.id))
+          .map((doc) => OrderDataRes.fromJson(doc.data(), doc.id))
           .toList();
     });
   }
@@ -103,18 +104,24 @@ class _UserHomePageState extends State<UserHomePage> {
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () {
+                      List<MapTrackReqOrder> orders = [...activeOrders, ...activeReceivedOrders]
+                          .where((order) =>
+                              (order.state == OrderState.accepted ||
+                              order.state == OrderState.onDelivery))
+                          .map((order) => MapTrackReqOrder(
+                                riderTelephone: order.riderTelephone,
+                                orderPosition: order.state == OrderState.accepted
+                                    ? order.receiverLocation
+                                    : order.senderLocation,
+                              ))
+                          .toList();
+
                       Get.to(() => MapPage(
-                        mode: MapMode.tracks,
-                        riderTelephones: activeOrders
-                          .where((order) => 
-                            (order.state == OrderState.accepted || 
-                             order.state == OrderState.onDelivery))
-                          .map((order) => order.riderTelephone)
-                          .toSet()
-                          .toList(),
-                      ));
+                            mode: MapMode.tracks,
+                            orders: orders,
+                          ));
                     },
-                    child: const Text('Track All')
+                    child: const Text('Track All'),
                   ),
                   _buildSentOrdersSection(activeOrders),
                   _buildReceivedOrdersSection(activeReceivedOrders),
@@ -174,9 +181,7 @@ class _UserHomePageState extends State<UserHomePage> {
                   ordersController.sentOrders
                       .where((order) => order.state == OrderState.completed)
                       .length),
-              _buildStatItem(
-                  'กำลังส่ง',
-                  sentOrders.length),
+              _buildStatItem('กำลังส่ง', sentOrders.length),
             ],
           ),
           const SizedBox(height: 8),
@@ -188,9 +193,7 @@ class _UserHomePageState extends State<UserHomePage> {
                   ordersController.receivedOrders
                       .where((order) => order.state == OrderState.completed)
                       .length),
-              _buildStatItem(
-                  'ของกำลังมาส่ง',
-                  receivedOrders.length),
+              _buildStatItem('ของกำลังมาส่ง', receivedOrders.length),
             ],
           ),
         ],
@@ -221,10 +224,10 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
         OrderListView(
-            useIncomingData: false,
-            orders: sentOrders,
-            limit: orderLimit,
-            userType: UserType.user,
+          useIncomingData: false,
+          orders: sentOrders,
+          limit: orderLimit,
+          userType: UserType.user,
         ),
       ],
     );
@@ -253,10 +256,10 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
         ),
         OrderListView(
-            useIncomingData: true,
-            orders: receivedOrders,
-            limit: orderLimit,
-            userType: UserType.user,
+          useIncomingData: true,
+          orders: receivedOrders,
+          limit: orderLimit,
+          userType: UserType.user,
         ),
       ],
     );

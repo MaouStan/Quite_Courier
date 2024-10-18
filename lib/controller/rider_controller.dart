@@ -57,19 +57,22 @@ class RiderController extends GetxController {
 
   void _startLocationUpdates() {
     LatLng? lastPosition;
-    _locationUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    _locationUpdateTimer =
+        Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (riderData.value.telephone.isNotEmpty) {
         LatLng position = await GeolocatorServices.getCurrentLocation();
         log('position: ${position.toString()}');
 
-        if (lastPosition == null || 
+        if (lastPosition == null ||
             Geolocator.distanceBetween(
-              lastPosition!.latitude, 
-              lastPosition!.longitude, 
-              position.latitude, 
-              position.longitude
-            ) > 10) { // Only update if moved more than 10 meters
-          bool updated = await _authService.updateRiderLocation(riderData.value.telephone, position);
+                    lastPosition!.latitude,
+                    lastPosition!.longitude,
+                    position.latitude,
+                    position.longitude) >
+                10) {
+          // Only update if moved more than 10 meters
+          bool updated = await _authService.updateRiderLocation(
+              riderData.value.telephone, position);
           if (updated) {
             riderData.update((val) {
               val?.location = position;
@@ -85,8 +88,10 @@ class RiderController extends GetxController {
   }
 
   void stopLocationUpdates() {
-    _locationUpdateTimer?.cancel();
-    _locationUpdateTimer = null;
+    if (_locationUpdateTimer != null) {
+      _locationUpdateTimer?.cancel();
+      _locationUpdateTimer = null;
+    }
   }
 
   // {{ edit_4 }} Upload the selected image upon confirmation
@@ -142,8 +147,10 @@ class RiderController extends GetxController {
   }
 
   void _stopOrderCountStream() {
-    _orderCountSubscription?.cancel();
-    _orderCountSubscription = null;
+    if (_orderCountSubscription != null) {
+      _orderCountSubscription?.cancel();
+      _orderCountSubscription = null;
+    }
   }
 
   // Call this method when rider data is updated

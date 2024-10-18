@@ -430,7 +430,6 @@ class OrderDetailContent extends StatelessWidget {
                   mode: MapMode.route,
                   riderTelephone: order.riderTelephone,
                   orderPosition: orderPosition,
-                  focusOnRider: true,
                 ));
           },
           style: ElevatedButton.styleFrom(

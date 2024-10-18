@@ -20,10 +20,12 @@ class AuthService {
     File? profileImage,
   ) async {
     // Check if the telephone number already exists
+    DocumentSnapshot riderDoc =
+        await _firestore.collection('riders').doc(signUpData.telephone).get();
     DocumentSnapshot userDoc =
         await _firestore.collection('users').doc(signUpData.telephone).get();
 
-    if (userDoc.exists) {
+    if (userDoc.exists || riderDoc.exists) {
       return AuthResponse(
           success: false,
           message: 'This telephone number is already registered.');
@@ -159,7 +161,8 @@ class AuthService {
           value.addressDescription = userData.addressDescription;
         }
       });
-      dev.log('userController.userData.value: ${userController.userData.value.toString()}');
+      dev.log(
+          'userController.userData.value: ${userController.userData.value.toString()}');
       return AuthResponse(
           success: true, message: 'Profile updated successfully');
     } catch (e) {
@@ -196,7 +199,8 @@ class AuthService {
     }
   }
 
-  Future<bool> updateRiderLocation(String riderTelephone, LatLng newLocation) async {
+  Future<bool> updateRiderLocation(
+      String riderTelephone, LatLng newLocation) async {
     try {
       await _firestore.collection('riders').doc(riderTelephone).update({
         'location': {
