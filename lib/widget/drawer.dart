@@ -149,14 +149,26 @@ class MyDrawer extends StatelessWidget {
                       onPressed: () {
                         Get.back();
                       },
-                      child: const Text('Cancel'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey, // สีปุ่ม Cancel เป็นสีเทา
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.popUntil(context, (route) => route.isFirst);
                         Get.find<RiderController>().onClose();
                       },
-                      child: const Text('Logout'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // สีปุ่ม Logout เป็นสีแดง
+                      ),
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 );
