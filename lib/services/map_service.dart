@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
@@ -26,7 +28,9 @@ class MapService {
       return coordinates.map((coord) => LatLng(coord[1], coord[0])).toList();
     } else {
       // Throw an exception if the request failed
-      throw Exception('Failed to load route');
+      // throw Exception('Failed to load route');
+      Get.snackbar('Error', 'Failed to load route');
+      return [];
     }
   }
 }

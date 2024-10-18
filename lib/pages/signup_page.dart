@@ -697,7 +697,10 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
                   ),
                   onPressed: () async {
                     dev.log('open map');
-                    LatLng? oldPostiion = _selectedPosition;
+                    LatLng? oldPostiion = _selectedPosition ?? LatLng(
+                      double.parse(_positionController.text.split(',')[0]),
+                      double.parse(_positionController.text.split(',')[1]),
+                    );
                     dev.log('oldPostiion: $oldPostiion');
                     _selectedPosition = await Get.to(() => MapPage(
                           mode: MapMode.select,

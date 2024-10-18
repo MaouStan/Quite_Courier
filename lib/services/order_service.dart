@@ -187,7 +187,8 @@ class OrderService {
           .update(updateData);
     } catch (e) {
       log('Error updating rider images: $e');
-      rethrow;
+      // rethrow;
+      Get.snackbar('Error', 'Failed to update rider images');
     }
   }
 
@@ -232,7 +233,7 @@ class OrderService {
       return false;
     }
   }
-static Stream<OrderDataRes> streamOrderDetails(String orderId) {
+static Stream<OrderDataRes>? streamOrderDetails(String orderId) {
   try {
     return FirebaseFirestore.instance
         .collection('orders')
@@ -244,7 +245,8 @@ static Stream<OrderDataRes> streamOrderDetails(String orderId) {
       
       if (!orderSnapshot.exists) {
         log("Order not found: $orderId");
-        throw Exception('Order not found');
+        // throw Exception('Order not found');
+        Get.snackbar('Error', 'Failed to fetch order details');
       }
 
       Map<String, dynamic> orderData = orderSnapshot.data() as Map<String, dynamic>;
@@ -273,11 +275,13 @@ static Stream<OrderDataRes> streamOrderDetails(String orderId) {
       return orderDataRes;
     }).handleError((error) {
       log("Error in streamOrderDetails: $error");
-      throw error;
+      // throw error;
     });
   } catch (e) {
     log("Unexpected error in streamOrderDetails: $e");
-    rethrow;
+    // rethrow;
+    Get.snackbar('Error', 'Failed to fetch order details');
+    return null;
   }
 }
 

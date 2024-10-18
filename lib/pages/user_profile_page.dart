@@ -172,7 +172,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           onPressed: () async {
                             // if mode edit
                             if (!isEditMode) return;
-                            LatLng? oldPostiion = _selectedPosition;
+                            LatLng? oldPostiion = _selectedPosition ?? LatLng(
+                              double.parse(controllers!['gpsMap']!.text.split(',')[0]),
+                              double.parse(controllers!['gpsMap']!.text.split(',')[1]),
+                            );
+                            log('oldPostiion: $oldPostiion');
                             _selectedPosition = await Get.to(() => MapPage(
                                   mode: MapMode.select,
                                   selectedPosition: oldPostiion,
@@ -183,7 +187,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   '${_selectedPosition!.latitude}, ${_selectedPosition!.longitude}';
                             } else {
                               controllers!['gpsMap']!.text =
-                                  '${oldPostiion!.latitude}, ${oldPostiion.longitude}';
+                                  '${oldPostiion.latitude}, ${oldPostiion.longitude}';
                             }
                           },
                         ),

@@ -156,7 +156,6 @@ class _RiderHomePageState extends State<RiderHomePage> {
                   // Handle the error by setting a placeholder icon
                   return;
                 },
-
               ),
               const SizedBox(width: 12),
               Text(stateController.riderData.value.name,
@@ -463,7 +462,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
                                     return AlertDialog(
                                       title: const Text('เริ่มการจัดส่ง'),
                                       content: const Text(
-                                          'โปรดถ่ายรูปสินค้าก่อนเริ่มการจัดส่ง'),
+                                          'โปรดถ่ารูปสินค้าก่อนเริ่มการจัดส่ง'),
                                       actions: <Widget>[
                                         TextButton(
                                           child: const Text('ตกลง'),
@@ -556,71 +555,64 @@ class _RiderHomePageState extends State<RiderHomePage> {
   }
 
   Widget _buildDeliveryStatus() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned.fill(
-          top: -40,
-          left: 30,
-          right: 30,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return SizedBox(
+      height: 120, // Adjust this height as needed
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: 40, // Adjust this value to position the lines correctly
+            left: 50,
+            right: 50,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildConnectingLine(
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.accepted.index,
+                ),
+                _buildConnectingLine(
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.onDelivery.index,
+                ),
+                _buildConnectingLine(
+                  isActive: stateController.currentOrder.value!.state.index >=
+                      OrderState.completed.index,
+                ),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildConnectingLine(
+              _buildStatusItem(
+                icon: Icons.directions_bike,
+                label: 'รอ Rider\nรับงาน',
+                isActive: stateController.currentOrder.value!.state.index >=
+                    OrderState.pending.index,
+              ),
+              _buildStatusItem(
+                icon: Icons.event,
+                label: 'ไรเดอร์รับงานแล้ว\nกำลังมาเอาของ',
                 isActive: stateController.currentOrder.value!.state.index >=
                     OrderState.accepted.index,
               ),
-              _buildConnectingLine(
+              _buildStatusItem(
+                icon: Icons.local_shipping,
+                label: 'กำลังจัดส่ง',
                 isActive: stateController.currentOrder.value!.state.index >=
                     OrderState.onDelivery.index,
               ),
-              _buildConnectingLine(
+              _buildStatusItem(
+                icon: Icons.check_circle,
+                label: 'ส่งแล้ว',
                 isActive: stateController.currentOrder.value!.state.index >=
                     OrderState.completed.index,
               ),
             ],
           ),
-        ),
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Flexible(
-                child: _buildStatusItem(
-                  icon: Icons.directions_bike,
-                  label: 'รอ Rider\nรับงาน',
-                  isActive: stateController.currentOrder.value!.state.index >=
-                      OrderState.pending.index,
-                ),
-              ),
-              Flexible(
-                child: _buildStatusItem(
-                  icon: Icons.event,
-                  label: 'ไรเดอร์รับงานแล้ว\nกำลังมาเอาของ',
-                  isActive: stateController.currentOrder.value!.state.index >=
-                      OrderState.accepted.index,
-                ),
-              ),
-              Flexible(
-                child: _buildStatusItem(
-                  icon: Icons.local_shipping,
-                  label: 'กำลังจัดส่ง',
-                  isActive: stateController.currentOrder.value!.state.index >=
-                      OrderState.onDelivery.index,
-                ),
-              ),
-              Flexible(
-                child: _buildStatusItem(
-                  icon: Icons.check_circle,
-                  label: 'ส่งแล้ว',
-                  isActive: stateController.currentOrder.value!.state.index >=
-                      OrderState.completed.index,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -634,38 +626,30 @@ class _RiderHomePageState extends State<RiderHomePage> {
     );
   }
 
-  Widget _buildStatusItem(
-      {required IconData icon, required String label, required bool isActive}) {
-    return SizedBox(
-      width: 90,
-      height: 109,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 10),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: isActive ? Colors.purple : Colors.grey[300],
-                child: Icon(icon, size: 24, color: Colors.white),
-              ),
-              const SizedBox(height: 4),
-            ],
+  Widget _buildStatusItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: isActive ? Colors.purple : Colors.grey[300],
+          child: Icon(icon, size: 24, color: Colors.white),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            color: isActive ? Colors.black : Colors.grey,
           ),
-          const SizedBox(height: 8), // Add spacing between icon and text
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive ? Colors.black : Colors.grey,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

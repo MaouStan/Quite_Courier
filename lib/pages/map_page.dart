@@ -547,7 +547,8 @@ class _MapPageState extends State<MapPage> {
     switch (mode) {
       case MapMode.route:
         if (widget.riderTelephone == null) {
-          throw Exception('riderTelephone must be provided for RouteMode');
+          // throw Exception('riderTelephone must be provided for RouteMode');
+          Get.snackbar('Error', 'riderTelephone must be provided for RouteMode');
         }
 
         return RouteModeHandler(widget.riderTelephone!, () {
@@ -558,7 +559,8 @@ class _MapPageState extends State<MapPage> {
             focusOnRider: focusOnRider); // Pass order position
       case MapMode.tracks:
         if (widget.riderTelephones == null) {
-          throw Exception('riderTelephones must be provided for TracksMode');
+          // throw Exception('riderTelephones must be provided for TracksMode');
+          Get.snackbar('Error', 'riderTelephones must be provided for TracksMode');
         }
         return TracksModeHandler(widget.riderTelephones!, () {
           if (mounted) {
