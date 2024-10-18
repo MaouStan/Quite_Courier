@@ -58,7 +58,7 @@ class OrderListView extends StatelessWidget {
   Future<List<OrderDataRes>> _fetchOrders() async {
     var riderController = Get.find<RiderController>();
     return await OrderService.fetchOrderWithRiderAndState(
-        riderController.riderData.value.telephone, OrderState.completed);
+        riderController.riderData.value.telephone, [OrderState.completed]);
   }
 
   Widget _buildOrderItem(OrderDataRes order) {

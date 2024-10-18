@@ -33,13 +33,13 @@ class OrderService {
   }
 
   static Future<List<OrderDataRes>> fetchOrderWithRiderAndState(
-      String riderTelephone, OrderState orderState) async {
+      String riderTelephone, List<OrderState> orderStates) async {
     try {
       FirebaseFirestore firestore = FirebaseFirestore.instance;
       QuerySnapshot orderDoc = await firestore
           .collection('orders')
           .where('riderTelephone', isEqualTo: riderTelephone)
-          .where('state', isEqualTo: orderState.toString())
+          .where('state', whereIn: orderStates.map((state) => state.toString()).toList())
           .get();
 
       var orders = orderDoc.docs.map((doc) {

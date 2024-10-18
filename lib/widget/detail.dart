@@ -266,9 +266,11 @@ class OrderDetailContent extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildImageContainer(updatedOrder.riderOrderPhoto1 ?? ''),
+            if (updatedOrder.riderOrderPhoto1.isNotEmpty)
+              _buildImageContainer(updatedOrder.riderOrderPhoto1),
             const SizedBox(width: 10),
-            _buildImageContainer(updatedOrder.riderOrderPhoto2 ?? ''),
+            if (updatedOrder.riderOrderPhoto2.isNotEmpty)
+              _buildImageContainer(updatedOrder.riderOrderPhoto2),
           ],
         ),
       );
@@ -287,7 +289,7 @@ class OrderDetailContent extends StatelessWidget {
         border: Border.all(color: const Color(0xFFA77C0E), width: 2),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: imageUrl.isNotEmpty ? ClipRRect(
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Image.network(
           imageUrl,
@@ -302,10 +304,9 @@ class OrderDetailContent extends StatelessWidget {
               child: Icon(Icons.image_not_supported, color: Colors.grey[600]),
             );
           },
-            ),
-          )
-            : null,
-      );
+        ),
+      ),
+    );
   }
 
   Widget _buildRecipientDetails(OrderDataRes order) {
@@ -411,6 +412,9 @@ class OrderDetailContent extends StatelessWidget {
   }
 
   Widget _buildMapButton(OrderDataRes order) {
+    if (order.state == OrderState.pending || order.state == OrderState.completed) {
+      return Container();
+    }
     LatLng orderPosition;
     if (order.state == OrderState.accepted) {
       orderPosition = order.senderLocation;

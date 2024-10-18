@@ -51,7 +51,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
 
   Future<void> _initialize() async {
     var myOrder = await OrderService.fetchOrderWithRiderAndState(
-        stateController.riderData.value.telephone, OrderState.accepted);
+        stateController.riderData.value.telephone, [OrderState.accepted, OrderState.onDelivery]);
     stateController.currentOrder.value =
         myOrder.isNotEmpty ? myOrder.first : null;
     stateController.currentState.value = RiderOrderState.sendingOrder;
