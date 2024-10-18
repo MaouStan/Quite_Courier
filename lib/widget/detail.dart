@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,11 +25,10 @@ class OrderDetailContent extends StatelessWidget {
     final userController = Get.find<UserController>();
 
     return StreamBuilder<DocumentSnapshot>(
-      // แก้ตรงนี้ โดยใช้ order.documentId แทน orderId
       stream: FirebaseFirestore.instance
           .collection('orders')
-          .doc(order.documentId) // ใช้ order.documentId
-          .snapshots(), // ลบ .map ออกเพราะเราต้องการ DocumentSnapshot
+          .doc(order.documentId)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -79,7 +77,7 @@ class OrderDetailContent extends StatelessWidget {
                       thickness: 1,
                       indent: 16,
                       endIndent: 16),
-                  _buildRiderDetails(order),
+                  _buildRiderDetails(updatedOrder),
                   const Divider(
                       color: Colors.black,
                       thickness: 1,
@@ -97,7 +95,7 @@ class OrderDetailContent extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30),
                     child: Text(
-                      order.nameOrder,
+                      updatedOrder.nameOrder,
                       style: TextStyle(
                         fontSize: Get.textTheme.titleLarge!.fontSize,
                         color: const Color(0xFF202442),
@@ -105,7 +103,7 @@ class OrderDetailContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildDeliveryImage(order),
+                  _buildDeliveryImage(updatedOrder),
                   const SizedBox(height: 12),
                   Text(order.description,
                       style: TextStyle(
@@ -239,29 +237,29 @@ class OrderDetailContent extends StatelessWidget {
     );
   }
 
-  Widget _buildDeliveryImage(OrderDataRes order) {
-    if (order.state.index == 2 || order.state.index == 3) {
+  Widget _buildDeliveryImage(OrderDataRes updatedOrder) {
+    if (updatedOrder.state == OrderState.onDelivery ||
+        updatedOrder.state == OrderState.completed) {
       return Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildImageContainer(order.riderOrderPhoto1),
-            const SizedBox(width: 10), // ระยะห่างระหว่างรูปภาพ
-            _buildImageContainer(
-                order.riderOrderPhoto2 ?? ''), // สมมติว่ามี field deliveryPhoto
+            _buildImageContainer(updatedOrder.riderOrderPhoto1 ?? ''),
+            const SizedBox(width: 10),
+            _buildImageContainer(updatedOrder.riderOrderPhoto2 ?? ''),
           ],
         ),
       );
     } else {
       return Center(
-        child: _buildImageContainer(order.orderPhoto),
+        child: _buildImageContainer(updatedOrder.orderPhoto),
       );
     }
   }
 
   Widget _buildImageContainer(String imageUrl) {
     return Container(
-      width: 160, // ปรับขนาดลงเพื่อให้พอดีกับการแสดงสองรูป
+      width: 160,
       height: 160,
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFA77C0E), width: 2),
@@ -275,7 +273,6 @@ class OrderDetailContent extends StatelessWidget {
           height: 80,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            // Return a placeholder or fallback image when the network image fails to load
             return Container(
               width: 120,
               height: 80,
