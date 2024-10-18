@@ -372,8 +372,7 @@ class _RiderHomePageState extends State<RiderHomePage> {
       image1 = await Utils().takePhoto();
     } else if (newState == OrderState.completed) {
       image2 = await Utils().takePhoto();
-      stateController
-          .stopLocationUpdates(); // Stop location updates when delivery is completed
+      stateController.stopLocationUpdates(); // Stop location updates when delivery is completed
     }
 
     if (image1 == null && image2 == null) {
@@ -381,11 +380,13 @@ class _RiderHomePageState extends State<RiderHomePage> {
       return;
     }
 
+    Get.snackbar('การอัปเดตสถานะงาน', 'กำลังอัปเดตสถานะงาน...');
     bool success = await OrderService.updateOrder(
         stateController.currentOrder.value!,
         image1: image1,
         image2: image2,
         newState: newState);
+        
 
     if (success) {
       stateController.currentOrder.value!.state = newState;
