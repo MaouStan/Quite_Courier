@@ -70,7 +70,8 @@ class _RecieverListViewPageState extends State<RecieverListViewPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _buildStatItem(
-                                  'รับของแล้ว', receivedOrders.length),
+                                  'รับของแล้ว', receivedOrders.where((order) => order.state == OrderState.completed).length
+),
                               _buildStatItem(
                                   'ของกำลังมาส่ง',
                                   receivedOrders

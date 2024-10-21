@@ -70,7 +70,8 @@ class _SenderListViewPageState extends State<SenderListViewPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildStatItem('จัดส่งแล้ว', sentOrders.length),
+                            _buildStatItem('จัดส่งแล้ว', sentOrders.where((order) => order.state == OrderState.completed).length
+),
                             _buildStatItem(
                                 'กำลังส่ง',
                                 sentOrders
