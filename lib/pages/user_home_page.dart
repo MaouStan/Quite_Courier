@@ -102,8 +102,8 @@ class _UserHomePageState extends State<UserHomePage> {
                   _buildUserInfoCard(activeOrders, activeReceivedOrders),
                   const SizedBox(height: 12),
                   const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () {
+                  Builder(
+                    builder: (context) {
                       List<MapTrackReqOrder> orders = [...activeOrders, ...activeReceivedOrders]
                           .where((order) =>
                               (order.state == OrderState.accepted ||
@@ -116,12 +116,20 @@ class _UserHomePageState extends State<UserHomePage> {
                               ))
                           .toList();
 
-                      Get.to(() => MapPage(
-                            mode: MapMode.tracks,
-                            orders: orders,
-                          ));
+                      if (orders.isNotEmpty) {
+                        return ElevatedButton(
+                          onPressed: () {
+                            Get.to(() => MapPage(
+                                  mode: MapMode.tracks,
+                                  orders: orders,
+                                ));
+                          },
+                          child: const Text('Track All'),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
                     },
-                    child: const Text('Track All'),
                   ),
                   _buildSentOrdersSection(activeOrders),
                   _buildReceivedOrdersSection(activeReceivedOrders),
