@@ -143,70 +143,76 @@ class _SignUpPageState extends State<SignUpPage> with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
 
   Future<void> _register() async {
-    AuthResponse? result;
+  AuthResponse? result;
 
-    try {
-      if (!_validateInputs()) {
-        return;
-      }
+  try {
+    if (!_validateInputs()) {
+      return;
+    }
 
-      final String telephone = _telephoneController.text.trim();
-      final String password = _passwordController.text.trim();
-      final String confirmPassword = _confirmPasswordController.text.trim();
-      final String name = _nameController.text.trim();
-      final String description = _addDescripController.text.trim();
+    final String telephone = _telephoneController.text.trim();
+    final String password = _passwordController.text.trim();
+    final String confirmPassword = _confirmPasswordController.text.trim();
+    final String name = _nameController.text.trim();
+    final String description = _addDescripController.text.trim();
 
-      if (!_validatePasswords(password, confirmPassword)) {
-        return;
-      }
+    if (!_validatePasswords(password, confirmPassword)) {
+      return;
+    }
 
-      Get.dialog(
-        const Center(child: CircularProgressIndicator()),
-        barrierDismissible: false,
+    // แสดง CircularProgressIndicator
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+
+    // หน่วงเวลา 5 วินาที แล้วปิด CircularProgressIndicator
+    await Future.delayed(Duration(seconds: 2));
+    Get.back(); // ปิด Dialog ที่แสดง CircularProgressIndicator
+
+    LatLng location = _selectedPosition ??
+        LatLng(double.parse(_positionController.text.split(',')[0]),
+            double.parse(_positionController.text.split(',')[1]));
+
+    if (widget.role == 'Rider') {
+      RiderSignUpData signUpData = RiderSignUpData(
+        telephone: telephone,
+        password: password,
+        name: name,
+        location: location,
+        vehicleRegistration: _vehicleRegistrationController.text.trim(),
       );
 
-      LatLng location = _selectedPosition ??
-          LatLng(double.parse(_positionController.text.split(',')[0]),
-              double.parse(_positionController.text.split(',')[1]));
-
-      if (widget.role == 'Rider') {
-        RiderSignUpData signUpData = RiderSignUpData(
-          telephone: telephone,
-          password: password,
-          name: name,
-          location: location,
-          vehicleRegistration: _vehicleRegistrationController.text.trim(),
-        );
-
-        result = await _authService.registerRider(
-            signUpData, _profileImage, _vehicleImage);
-        // Handle result for rider registration
-      } else {
-        UserSignUpData signUpData = UserSignUpData(
-          telephone: telephone,
-          password: password,
-          name: name,
-          addressDescription: description,
-          location: location,
-        );
-
-        result = await _authService.registerUser(signUpData, _profileImage);
-        // Handle result for user registration
-      }
-
-      // Handle common result processing
-    } catch (e) {
-      // Handle errors
-    }
-
-    if (result != null && !result.success) {
-      Get.closeAllSnackbars();
-      Get.snackbar('Error', result.message,
-          backgroundColor: Colors.red, colorText: Colors.white);
+      result = await _authService.registerRider(
+          signUpData, _profileImage, _vehicleImage);
+      // Handle result for rider registration
     } else {
-      Get.to(() => const SigninPage());
+      UserSignUpData signUpData = UserSignUpData(
+        telephone: telephone,
+        password: password,
+        name: name,
+        addressDescription: description,
+        location: location,
+      );
+
+      result = await _authService.registerUser(signUpData, _profileImage);
+      // Handle result for user registration
     }
+
+    // Handle common result processing
+  } catch (e) {
+    // Handle errors
   }
+
+  if (result != null && !result.success) {
+    Get.closeAllSnackbars();
+    Get.snackbar('Error', result.message,
+        backgroundColor: Colors.red, colorText: Colors.white);
+  } else {
+    Get.to(() => const SigninPage());
+  }
+}
+
 
 // Validate all required inputs
   bool _validateInputs() {
